@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     event_id: body.event_id,
     discord_id: body.discord_id,
     discord_username: body.discord_username,
+    discord_avatar_url: body.discord_avatar_url || null,
     twitter_handle: body.twitter_handle || null,
     github_username: body.github_username || null,
     project_name: body.project_name,
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
         discord_username: body.discord_username,
         twitter_handle: body.twitter_handle || existingProfile.twitter_handle,
         github_username: body.github_username || existingProfile.github_username,
-        discord_avatar_url: githubData?.user?.avatar_url || existingProfile.discord_avatar_url,
+        discord_avatar_url: body.discord_avatar_url || githubData?.user?.avatar_url || existingProfile.discord_avatar_url,
         total_participations: existingProfile.total_participations + 1,
       })
       .eq('discord_id', body.discord_id);
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
       discord_username: body.discord_username,
       twitter_handle: body.twitter_handle || null,
       github_username: body.github_username || null,
-      discord_avatar_url: githubData?.user?.avatar_url || null,
+      discord_avatar_url: body.discord_avatar_url || githubData?.user?.avatar_url || null,
       total_participations: 1,
       badges: ['first_timer'],
     });

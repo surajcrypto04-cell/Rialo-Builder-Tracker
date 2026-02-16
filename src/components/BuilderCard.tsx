@@ -39,10 +39,10 @@ export default function BuilderCard({ participant, variant, maxVotes }: BuilderC
           <div className="relative">
             <img
               src={
-                participant.github_avatar_url ||
-                participant.discord_avatar_url ||
-                `https://api.dicebear.com/7.x/identicon/svg?seed=${participant.discord_id}`
-              }
+                    participant.discord_avatar_url ||
+                    participant.github_avatar_url ||
+                    `https://api.dicebear.com/7.x/identicon/svg?seed=${participant.discord_id}`
+                  }
               alt={participant.discord_username}
               className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border-2 transition-transform group-hover:scale-105"
               style={{ borderColor: `${accentColor}33` }}

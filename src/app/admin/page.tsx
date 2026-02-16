@@ -299,10 +299,10 @@ function ParticipantsList({
             {/* Avatar */}
             <img
               src={
-                p.github_avatar_url ||
-                p.discord_avatar_url ||
-                `https://api.dicebear.com/7.x/identicon/svg?seed=${p.discord_id}`
-              }
+                        p.discord_avatar_url ||
+                        p.github_avatar_url ||
+                        `https://api.dicebear.com/7.x/identicon/svg?seed=${p.discord_id}`
+                  }
               alt={p.discord_username}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border border-white/10"
             />

@@ -42,6 +42,7 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
   const [projectStatus, setProjectStatus] = useState('building');
   const [teamSize, setTeamSize] = useState('solo');
   const [screenshotUrl, setScreenshotUrl] = useState('');
+  const [discordAvatarUrl, setDiscordAvatarUrl] = useState('');
 
   // Fetch GitHub preview
   async function handleGithubLookup() {
@@ -91,6 +92,7 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
           event_id: eventId,
           discord_id: discordId.trim(),
           discord_username: discordUsername.trim(),
+          discord_avatar_url: discordAvatarUrl.trim(),
           twitter_handle: twitterHandle.trim(),
           github_username: githubUsername.trim(),
           project_name: projectName.trim(),
@@ -127,6 +129,7 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
         setProjectStatus('building');
         setTeamSize('solo');
         setScreenshotUrl('');
+        setDiscordAvatarUrl('');
         setGithubPreview(null);
 
         onSuccess();
@@ -195,6 +198,22 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
+              Discord Avatar URL (paste from Discord profile)
+            </label>
+            <input
+              type="url"
+              value={discordAvatarUrl}
+              onChange={(e) => setDiscordAvatarUrl(e.target.value)}
+              placeholder="https://cdn.discordapp.com/avatars/..."
+              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
+            />
+            <p className="text-[10px] text-[var(--text-secondary)] mt-1">
+              Right-click their Discord profile picture → Copy Image Address
+            </p>
           </div>
 
           <div>

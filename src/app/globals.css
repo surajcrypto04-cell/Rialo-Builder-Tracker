@@ -642,3 +642,158 @@ body {
 .bubble:nth-child(8) {
   width: 10px; height: 10px; left: 90%; animation-duration: 8s; animation-delay: 2.5s;
 }
+
+/* ==========================================
+   POLISH FIXES
+   ========================================== */
+
+/* Fix select dropdown styling */
+select option {
+  background: #12121a;
+  color: #f0f0f5;
+  padding: 8px;
+}
+
+/* Fix input autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #12121a inset;
+  -webkit-text-fill-color: #f0f0f5;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Card hover lift effect */
+.glass-card,
+.glass-card-bh,
+.glass-card-st,
+.glass-card-winner {
+  will-change: transform;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+
+img[src=""] {
+  opacity: 0;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Fix mobile overflow */
+@media (max-width: 639px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .max-w-7xl {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* Fix hero section mobile */
+@media (max-width: 639px) {
+  section.relative.min-h-\[90vh\] {
+    min-height: 80vh;
+  }
+}
+
+/* Ensure cards don't overflow */
+.glass-card,
+.glass-card-bh,
+.glass-card-st,
+.glass-card-winner {
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Button focus styles for accessibility */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--bh-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Tooltip on hover for badges */
+[title] {
+  position: relative;
+}
+
+/* Smooth page transitions */
+main {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Fix admin panel mobile */
+@media (max-width: 639px) {
+  .grid-cols-2.sm\:grid-cols-4 {
+    gap: 8px;
+  }
+}
+
+/* Progress bar animation trigger */
+.progress-bar-fill {
+  transition: width 1s ease-out;
+}
+
+/* Vote button states */
+.vote-btn:disabled {
+  cursor: default;
+}
+
+.vote-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.vote-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Skeleton loading for cards */
+.glass-card-bh.skeleton,
+.glass-card-st.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 140, 0, 0.02) 25%,
+    rgba(255, 140, 0, 0.05) 50%,
+    rgba(255, 140, 0, 0.02) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Tag overflow handling */
+.flex-wrap {
+  row-gap: 6px;
+}
+
+/* Mobile bottom safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Truncate text utility */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

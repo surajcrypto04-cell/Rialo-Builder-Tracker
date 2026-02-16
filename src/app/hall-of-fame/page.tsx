@@ -138,11 +138,11 @@ function WinnerSection({
               {/* Avatar */}
               <Link href={`/profile/${winner.discord_id}`}>
                 <img
-                  src={
-                    winner.github_avatar_url ||
-                    winner.discord_avatar_url ||
-                    `https://api.dicebear.com/7.x/identicon/svg?seed=${winner.discord_id}`
-                  }
+                 src={
+                        winner.discord_avatar_url ||
+                        winner.github_avatar_url ||
+                        `https://api.dicebear.com/7.x/identicon/svg?seed=${winner.discord_id}`
+                        }
                   alt={winner.discord_username}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border border-[var(--gold)]/30 flex-shrink-0"
                 />

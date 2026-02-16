@@ -99,10 +99,10 @@ function ProfileHeroSection({
           <div className="relative inline-block">
             <img
               src={
-                githubData?.avatar ||
-                profile.discord_avatar_url ||
-                `https://api.dicebear.com/7.x/identicon/svg?seed=${profile.discord_id}`
-              }
+                    profile.discord_avatar_url ||
+                    githubData?.avatar ||
+                    `https://api.dicebear.com/7.x/identicon/svg?seed=${profile.discord_id}`
+                    }
               alt={profile.discord_username}
               className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover border-2 border-white/10 shadow-2xl animate-float"
             />
