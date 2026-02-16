@@ -1,26 +1,644 @@
 @import "tailwindcss";
 
+/* ==========================================
+   RIALO BUILDERS ARENA — GLOBAL STYLES
+   ========================================== */
+
+/* ---- Custom Properties ---- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --text-primary: #f0f0f5;
+  --text-secondary: #8888aa;
+
+  /* Builder's Hub (warm) */
+  --bh-accent: #ff8c00;
+  --bh-accent-light: #ffd700;
+  --bh-glow: rgba(255, 140, 0, 0.3);
+  --bh-bg: rgba(255, 140, 0, 0.03);
+  --bh-border: rgba(255, 140, 0, 0.15);
+
+  /* Shark Tank (cool) */
+  --st-accent: #00c8ff;
+  --st-accent-light: #0066ff;
+  --st-glow: rgba(0, 200, 255, 0.3);
+  --st-bg: rgba(0, 200, 255, 0.03);
+  --st-border: rgba(0, 200, 255, 0.15);
+
+  /* Winner */
+  --gold: #ffd700;
+  --gold-glow: rgba(255, 215, 0, 0.4);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ---- Base Reset ---- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---- Scrollbar Styling ---- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ==========================================
+   ANIMATIONS — All CSS, GPU Accelerated
+   ========================================== */
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Down */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Left */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade In Right */
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale In */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pop In (for badges) */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Float (for avatars) */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Glow Pulse */
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--bh-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--bh-glow), 0 0 60px var(--bh-glow);
+  }
+}
+
+/* Glow Pulse Shark */
+@keyframes glowPulseShark {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--st-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--st-glow), 0 0 60px var(--st-glow);
+  }
+}
+
+/* Gold Glow (winners) */
+@keyframes goldGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--gold-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--gold-glow), 0 0 60px var(--gold-glow);
+  }
+}
+
+/* Shimmer (skeleton loaders) */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Gradient Border */
+@keyframes gradientBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ripple (vote button) */
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Bubble Rise (shark tank) */
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(100%) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-100vh) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Progress Bar Fill */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--target-width, 0%);
+  }
+}
+
+/* Typewriter Cursor */
+@keyframes blink {
+  0%,
+  50% {
+    border-color: transparent;
+  }
+  51%,
+  100% {
+    border-color: var(--bh-accent);
+  }
+}
+
+/* Slide Down (navbar) */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spin (loading) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Wave for section divider */
+@keyframes waveMove {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ==========================================
+   UTILITY ANIMATION CLASSES
+   ========================================== */
+
+/* Scroll-triggered animations (start invisible) */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  will-change: opacity, transform;
+}
+
+.animate-on-scroll.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animate-on-scroll.from-left {
+  transform: translateX(-30px);
+}
+
+.animate-on-scroll.from-left.in-view {
+  transform: translateX(0);
+}
+
+.animate-on-scroll.from-right {
+  transform: translateX(30px);
+}
+
+.animate-on-scroll.from-right.in-view {
+  transform: translateX(0);
+}
+
+.animate-on-scroll.scale {
+  transform: scale(0.8);
+}
+
+.animate-on-scroll.scale.in-view {
+  transform: scale(1);
+}
+
+/* Stagger Delays */
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+.stagger-7 { transition-delay: 0.7s; }
+.stagger-8 { transition-delay: 0.8s; }
+
+/* Direct animation classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+.animate-pop-in {
+  animation: popIn 0.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.animate-glow-shark {
+  animation: glowPulseShark 2s ease-in-out infinite;
+}
+
+.animate-glow-gold {
+  animation: goldGlow 2s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ==========================================
+   GLASSMORPHISM CARDS
+   ========================================== */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Builder's Hub Card */
+.glass-card-bh {
+  background: rgba(255, 140, 0, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bh-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-card-bh:hover {
+  background: rgba(255, 140, 0, 0.06);
+  border-color: rgba(255, 140, 0, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px var(--bh-glow);
+}
+
+/* Shark Tank Card */
+.glass-card-st {
+  background: rgba(0, 200, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--st-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-card-st:hover {
+  background: rgba(0, 200, 255, 0.06);
+  border-color: rgba(0, 200, 255, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px var(--st-glow);
+}
+
+/* Winner Card */
+.glass-card-winner {
+  background: rgba(255, 215, 0, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+  animation: goldGlow 3s ease-in-out infinite;
+}
+
+/* ==========================================
+   SKELETON LOADER
+   ========================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ==========================================
+   VOTE BUTTON
+   ========================================== */
+
+.vote-btn {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.vote-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.vote-btn:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+/* ==========================================
+   SECTION BACKGROUNDS
+   ========================================== */
+
+/* Builder's Hub Background */
+.bh-section {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    var(--bg-primary) 0%,
+    rgba(255, 140, 0, 0.02) 30%,
+    rgba(255, 140, 0, 0.05) 50%,
+    rgba(255, 140, 0, 0.02) 70%,
+    var(--bg-primary) 100%
+  );
+}
+
+.bh-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 140, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 140, 0, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+}
+
+/* Shark Tank Background */
+.st-section {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    var(--bg-primary) 0%,
+    rgba(0, 200, 255, 0.02) 30%,
+    rgba(0, 200, 255, 0.04) 50%,
+    rgba(0, 200, 255, 0.02) 70%,
+    var(--bg-primary) 100%
+  );
+}
+
+/* ==========================================
+   PROGRESS BARS
+   ========================================== */
+
+.progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease-out;
+}
+
+.progress-bar-fill-bh {
+  background: linear-gradient(90deg, var(--bh-accent), var(--bh-accent-light));
+}
+
+.progress-bar-fill-st {
+  background: linear-gradient(90deg, var(--st-accent-light), var(--st-accent));
+}
+
+.progress-bar-fill-gold {
+  background: linear-gradient(90deg, #ff8c00, var(--gold), #ff8c00);
+}
+
+/* ==========================================
+   BADGES
+   ========================================== */
+
+.badge-earned {
+  transition: transform 0.3s ease;
+}
+
+.badge-earned:hover {
+  transform: scale(1.15);
+}
+
+.badge-locked {
+  filter: grayscale(1) brightness(0.4);
+  opacity: 0.4;
+}
+
+/* ==========================================
+   RESPONSIVE UTILITIES
+   ========================================== */
+
+/* Hide on mobile */
+@media (max-width: 639px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 640px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ==========================================
+   NAVBAR GLASS
+   ========================================== */
+
+.navbar-glass {
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================
+   BUBBLES FOR SHARK TANK
+   ========================================== */
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 200, 255, 0.08);
+  animation: bubbleRise linear infinite;
+  pointer-events: none;
+}
+
+.bubble:nth-child(1) {
+  width: 8px; height: 8px; left: 10%; animation-duration: 6s; animation-delay: 0s;
+}
+.bubble:nth-child(2) {
+  width: 12px; height: 12px; left: 30%; animation-duration: 8s; animation-delay: 1s;
+}
+.bubble:nth-child(3) {
+  width: 6px; height: 6px; left: 50%; animation-duration: 5s; animation-delay: 2s;
+}
+.bubble:nth-child(4) {
+  width: 10px; height: 10px; left: 70%; animation-duration: 7s; animation-delay: 0.5s;
+}
+.bubble:nth-child(5) {
+  width: 8px; height: 8px; left: 85%; animation-duration: 9s; animation-delay: 3s;
+}
+.bubble:nth-child(6) {
+  width: 14px; height: 14px; left: 20%; animation-duration: 10s; animation-delay: 1.5s;
+}
+.bubble:nth-child(7) {
+  width: 6px; height: 6px; left: 60%; animation-duration: 6s; animation-delay: 4s;
+}
+.bubble:nth-child(8) {
+  width: 10px; height: 10px; left: 90%; animation-duration: 8s; animation-delay: 2.5s;
 }
