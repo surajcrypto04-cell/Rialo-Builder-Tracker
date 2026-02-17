@@ -4,7 +4,7 @@
 
 ### Where Builders Compete & Community Decides
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-rialo--builders--arena.vercel.app-blue?style=for-the-badge)](https://rialo-builders-arena.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-rialo--builder--tracker.vercel.app-blue?style=for-the-badge)](https://rialo-builder-tracker.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
 [![Discord](https://img.shields.io/badge/Discord-OAuth2-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
@@ -107,6 +107,7 @@ Rialo Builders Arena is a web platform built for the **Rialo Discord community**
 ---
 
 ## 📁 Project Structure
+
 src/
 ├── app/
 │ ├── page.tsx # Homepage (Hero + both sections)
@@ -141,8 +142,6 @@ src/
 └── types/
 └── index.ts # TypeScript interfaces
 
-text
-
 
 ---
 
@@ -153,7 +152,7 @@ votes → Vote records with weight (1x or 2x)
 builder_profiles → Persistent profiles across all events
 site_settings → Global configuration
 
-text
+
 
 
 ---
@@ -170,7 +169,7 @@ text
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/rialo-builders-arena.git
+git clone https://github.com/surajcrypto04-cell/Rialo-Builder-Tracker.git
 cd rialo-builders-arena
 Install dependencies
 Bash
