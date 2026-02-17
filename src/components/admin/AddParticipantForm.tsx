@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Event } from '@/types';
+import { supabase } from '@/lib/supabase';
 import { PROJECT_CATEGORIES, TECH_STACK_OPTIONS } from '@/lib/constants';
 import {
   Plus,
@@ -29,6 +30,7 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
   // Form fields
   const [eventId, setEventId] = useState('');
   const [discordId, setDiscordId] = useState('');
+  const [existingUser, setExistingUser] = useState<string | null>(null);
   const [discordUsername, setDiscordUsername] = useState('');
   const [twitterHandle, setTwitterHandle] = useState('');
   const [githubUsername, setGithubUsername] = useState('');
@@ -186,19 +188,50 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Discord ID *
-            </label>
-            <input
-              type="text"
-              value={discordId}
-              onChange={(e) => setDiscordId(e.target.value)}
-              placeholder="123456789012345678"
-              required
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
-          </div>
+         <div>
+  <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
+    Discord ID *
+  </label>
+  <input
+    type="text"
+    value={discordId}
+    onChange={(e) => {
+      setDiscordId(e.target.value);
+      setExistingUser(null);
+    }}
+    onBlur={async () => {
+      if (discordId.trim()) {
+        try {
+          const { data } = await supabase
+            .from('builder_profiles')
+            .select('discord_username')
+            .eq('discord_id', discordId.trim())
+            .single();
+          if (data) {
+            setExistingUser(data.discord_username);
+            setDiscordUsername(data.discord_username);
+          }
+        } catch {}
+      }
+    }}
+    placeholder="123456789012345678"
+    required
+    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
+  />
+  {existingUser && (
+    <div style={{
+      marginTop: '8px',
+      padding: '8px 12px',
+      borderRadius: '8px',
+      background: 'rgba(0, 200, 255, 0.05)',
+      border: '1px solid rgba(0, 200, 255, 0.15)',
+      fontSize: '12px',
+      color: 'var(--st-accent)',
+    }}>
+      ✅ Existing builder found: <strong>{existingUser}</strong> — Adding new project to their profile
+    </div>
+  )}
+</div>
 
           <div className="sm:col-span-2">
             <label className="block text-xs text-[var(--text-secondary)] mb-1.5">

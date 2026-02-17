@@ -17,142 +17,76 @@ export default function BuildersHubPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data: eventsData } = await supabase
-          .from('events')
-          .select('*')
-          .eq('event_type', 'builders_hub')
-          .order('week_number', { ascending: false });
-
+        const { data: eventsData } = await supabase.from('events').select('*').eq('event_type', 'builders_hub').order('week_number', { ascending: false });
         if (eventsData && eventsData.length > 0) {
           setEvents(eventsData);
-
           const eventId = selectedEvent === 'latest' ? eventsData[0].id : selectedEvent;
-
-          const { data: parts } = await supabase
-            .from('participants')
-            .select('*')
-            .eq('event_id', eventId)
-            .order('vote_count', { ascending: false });
-
+          const { data: parts } = await supabase.from('participants').select('*').eq('event_id', eventId).order('vote_count', { ascending: false });
           if (parts) setParticipants(parts);
         }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { console.error('Error:', error); }
+      finally { setLoading(false); }
     }
-
     fetchData();
   }, [selectedEvent]);
 
-  const filteredParticipants =
-    selectedCategory === 'all'
-      ? participants
-      : participants.filter((p) => p.project_category === selectedCategory);
-
-  const maxVotes = Math.max(...filteredParticipants.map((p) => p.vote_count), 1);
+  const filtered = selectedCategory === 'all' ? participants : participants.filter((p) => p.project_category === selectedCategory);
+  const maxVotes = Math.max(...filtered.map((p) => p.vote_count), 1);
 
   return (
-    <div className="bh-section min-h-screen py-12 sm:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bh-section" style={{ minHeight: '100vh', padding: '48px 0 80px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
         {/* Header */}
-        <div className="text-center mb-10 sm:mb-14 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bh-accent)]/10 border border-[var(--bh-accent)]/20 mb-6">
-            <Hammer className="w-4 h-4 text-[var(--bh-accent)]" />
-            <span className="text-sm font-medium text-[var(--bh-accent)]">Builder&apos;s Hub</span>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '9999px', background: 'rgba(255,140,0,0.08)', border: '1px solid rgba(255,140,0,0.2)', marginBottom: '24px' }}>
+            <Hammer style={{ width: 16, height: 16, color: 'var(--bh-accent)' }} />
+            <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--bh-accent)' }}>Builder&apos;s Hub</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-[var(--bh-accent)] to-[var(--bh-accent-light)] bg-clip-text text-transparent">
-              The Workshop
-            </span>
+          <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 700, marginBottom: '12px' }}>
+            <span style={{ background: 'linear-gradient(90deg, var(--bh-accent), var(--bh-accent-light))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>The Workshop</span>
           </h1>
-          <p className="text-[var(--text-secondary)] max-w-xl mx-auto">
-            All Builder&apos;s Hub projects across every week. Filter, explore, and vote.
-          </p>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto' }}>All Builder&apos;s Hub projects. Filter, explore, and vote.</p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
-          {/* Week Selector */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[var(--text-secondary)]" />
-            <select
-              value={selectedEvent}
-              onChange={(e) => {
-                setSelectedEvent(e.target.value);
-                setLoading(true);
-              }}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--bh-accent)]/50 appearance-none cursor-pointer"
-            >
-              <option value="latest" className="bg-[var(--bg-secondary)]">Latest Week</option>
-              {events.map((e) => (
-                <option key={e.id} value={e.id} className="bg-[var(--bg-secondary)]">
-                  {e.title}
-                </option>
-              ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Filter style={{ width: 16, height: 16, color: 'var(--text-secondary)' }} />
+            <select value={selectedEvent} onChange={(e) => { setSelectedEvent(e.target.value); setLoading(true); }}
+              style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)', fontSize: '13px', cursor: 'pointer' }}>
+              <option value="latest" style={{ background: 'var(--bg-secondary)' }}>Latest Week</option>
+              {events.map((e) => <option key={e.id} value={e.id} style={{ background: 'var(--bg-secondary)' }}>{e.title}</option>)}
             </select>
           </div>
-
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-[var(--bh-accent)]/10 text-[var(--bh-accent)] border border-[var(--bh-accent)]/30'
-                  : 'bg-white/5 text-[var(--text-secondary)] border border-white/5 hover:bg-white/10'
-              }`}
-            >
-              All
-            </button>
-            {PROJECT_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-[var(--bh-accent)]/10 text-[var(--bh-accent)] border border-[var(--bh-accent)]/30'
-                    : 'bg-white/5 text-[var(--text-secondary)] border border-white/5 hover:bg-white/10'
-                }`}
-              >
-                {cat}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {['all', ...PROJECT_CATEGORIES].map((cat) => (
+              <button key={cat} onClick={() => setSelectedCategory(cat)}
+                style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: 'all 0.3s',
+                  background: selectedCategory === cat ? 'rgba(255,140,0,0.1)' : 'rgba(255,255,255,0.05)',
+                  color: selectedCategory === cat ? 'var(--bh-accent)' : 'var(--text-secondary)',
+                  outline: selectedCategory === cat ? '1px solid rgba(255,140,0,0.3)' : '1px solid transparent',
+                }}>
+                {cat === 'all' ? 'All' : cat}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Cards Grid */}
+        {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="glass-card-bh p-6 h-64 skeleton" />
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+            {[1, 2, 3].map((i) => <div key={i} className="glass-card-bh skeleton" style={{ height: '300px', borderRadius: '16px' }} />)}
           </div>
-        ) : filteredParticipants.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredParticipants.map((participant, index) => (
-              <div
-                key={participant.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <BuilderCard
-                  participant={participant}
-                  variant="builders_hub"
-                  maxVotes={maxVotes}
-                />
-              </div>
-            ))}
+        ) : filtered.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+            {filtered.map((p) => <BuilderCard key={p.id} participant={p} variant="builders_hub" maxVotes={maxVotes} />)}
           </div>
         ) : (
-          <div className="glass-card-bh p-12 text-center max-w-lg mx-auto">
-            <div className="text-5xl mb-4">🏗️</div>
-            <h3 className="text-xl font-bold mb-2">No Projects Found</h3>
-            <p className="text-sm text-[var(--text-secondary)]">
-              {selectedCategory !== 'all'
-                ? `No ${selectedCategory} projects this week. Try another category.`
-                : 'No projects this week yet. Check back soon!'}
+          <div className="glass-card-bh" style={{ padding: '64px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏗️</div>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>No Projects Found</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+              {selectedCategory !== 'all' ? `No ${selectedCategory} projects. Try another category.` : 'No projects yet.'}
             </p>
           </div>
         )}

@@ -50,7 +50,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Nav Links */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-4">
               <NavLink href="/" label="Home" />
               <NavLink href="/builders-hub" label="Builder's Hub" icon={<Hammer className="w-3.5 h-3.5" />} />
               <NavLink href="/shark-tank" label="Shark Tank" icon={<Fish className="w-3.5 h-3.5" />} />
@@ -61,38 +61,28 @@ export default function Navbar() {
             </div>
 
             {/* Right Side: Auth + Mobile Toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               {status === 'loading' ? (
                 <div className="w-8 h-8 rounded-full skeleton" />
               ) : session ? (
                 <div className="flex items-center gap-2">
-                  {/* User Info - Desktop */}
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
                     {user?.image && (
                       <img
                         src={user.image}
                         alt=""
-                        className="w-6 h-6 rounded-full"
+                        className="w-7 h-7 sm:w-6 sm:h-6 rounded-full"
                       />
                     )}
-                    <span className="text-xs font-medium text-[var(--text-primary)] max-w-[100px] truncate">
+                    <span className="hidden sm:inline text-xs font-medium text-[var(--text-primary)] max-w-[100px] truncate">
                       {user?.username || user?.name}
                     </span>
                     {user?.isClubMember && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--gold)]/10 text-[var(--gold)] font-bold">
+                      <span className="hidden sm:inline text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--gold)]/10 text-[var(--gold)] font-bold">
                         2x
                       </span>
                     )}
                   </div>
-
-                  {/* Mobile Avatar */}
-                  {user?.image && (
-                    <img
-                      src={user.image}
-                      alt=""
-                      className="w-7 h-7 rounded-full sm:hidden"
-                    />
-                  )}
 
                   {/* Sign Out */}
                   <button
@@ -142,8 +132,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
-      <div className="h-16" />
     </>
   );
 }
@@ -152,7 +140,7 @@ function NavLink({ href, label, icon }: { href: string; label: string; icon?: Re
   return (
     <Link
       href={href}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-all"
+      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-all"
     >
       {icon}
       {label}

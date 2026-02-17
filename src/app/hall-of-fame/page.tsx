@@ -35,7 +35,7 @@ export default function HallOfFamePage() {
   const stWinners = winners.filter((w) => w.event?.event_type === 'shark_tank');
 
   return (
-    <div className="min-h-screen py-12 sm:py-20">
+    <div className="min-h-screen pt-8 pb-12 sm:pt-10 sm:pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-14 animate-fade-in-up">

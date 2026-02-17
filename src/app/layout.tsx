@@ -14,12 +14,6 @@ export const metadata: Metadata = {
   title: 'Rialo Builders Arena | Where Builders Compete',
   description:
     'Showcase your projects, earn community votes, and build your reputation in the Rialo Builders Hub and Shark Tank.',
-  keywords: ['web3', 'builders', 'solana', 'defi', 'nft', 'hackathon', 'voting'],
-  openGraph: {
-    title: 'Rialo Builders Arena',
-    description: 'Where builders compete and the community decides.',
-    type: 'website',
-  },
 };
 
 export default function RootLayout({
@@ -29,11 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)]">
         <SessionProvider>
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pt-16">{children}</main>
             <Footer />
           </div>
         </SessionProvider>

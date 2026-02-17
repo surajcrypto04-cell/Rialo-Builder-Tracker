@@ -1,67 +1,79 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import { useCountUp } from '@/hooks/useCountUp';
+import { supabase } from '@/lib/supabase';
 import { Users, Code, Vote, Trophy } from 'lucide-react';
 
 export default function StatsBar() {
   const { ref, isInView } = useInView(0.3);
+  const [stats, setStats] = useState({ builders: 0, projects: 0, votes: 0, winners: 0 });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const { data: participants } = await supabase.from('participants').select('id, vote_count, is_winner, discord_id');
+
+        if (participants) {
+          const uniqueBuilders = new Set(participants.map((p) => p.discord_id)).size;
+          const totalProjects = participants.length;
+          const totalVotes = participants.reduce((sum, p) => sum + p.vote_count, 0);
+          const totalWinners = participants.filter((p) => p.is_winner).length;
+
+          setStats({
+            builders: uniqueBuilders,
+            projects: totalProjects,
+            votes: totalVotes,
+            winners: totalWinners,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    }
+
+    fetchStats();
+  }, []);
 
   return (
-    <div ref={ref} className="relative py-8 border-y border-white/5 bg-white/[0.01]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          <StatItem
-            icon={<Users className="w-5 h-5 text-[var(--bh-accent)]" />}
-            value={0}
-            label="Builders"
-            isInView={isInView}
-          />
-          <StatItem
-            icon={<Code className="w-5 h-5 text-[var(--st-accent)]" />}
-            value={0}
-            label="Projects"
-            isInView={isInView}
-          />
-          <StatItem
-            icon={<Vote className="w-5 h-5 text-purple-400" />}
-            value={0}
-            label="Votes Cast"
-            isInView={isInView}
-          />
-          <StatItem
-            icon={<Trophy className="w-5 h-5 text-[var(--gold)]" />}
-            value={0}
-            label="Winners"
-            isInView={isInView}
-          />
+    <div ref={ref} style={{ padding: '48px 0' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 24px' }}>
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            borderRadius: '20px',
+            padding: '32px 24px',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '24px',
+            }}
+          >
+            <StatItem icon={<Users style={{ width: 22, height: 22, color: 'var(--bh-accent)' }} />} value={stats.builders} label="Builders" isInView={isInView} />
+            <StatItem icon={<Code style={{ width: 22, height: 22, color: 'var(--st-accent)' }} />} value={stats.projects} label="Projects" isInView={isInView} />
+            <StatItem icon={<Vote style={{ width: 22, height: 22, color: '#a78bfa' }} />} value={stats.votes} label="Votes Cast" isInView={isInView} />
+            <StatItem icon={<Trophy style={{ width: 22, height: 22, color: 'var(--gold)' }} />} value={stats.winners} label="Winners" isInView={isInView} />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function StatItem({
-  icon,
-  value,
-  label,
-  isInView,
-}: {
-  icon: React.ReactNode;
-  value: number;
-  label: string;
-  isInView: boolean;
-}) {
+function StatItem({ icon, value, label, isInView }: { icon: React.ReactNode; value: number; label: string; isInView: boolean }) {
   const count = useCountUp(value, 1500, isInView);
-
   return (
-    <div className="flex items-center gap-3 justify-center">
-      <div className="p-2 rounded-lg bg-white/5">{icon}</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+      <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }}>{icon}</div>
       <div>
-        <div className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
-          {count}
-        </div>
-        <div className="text-xs sm:text-sm text-[var(--text-secondary)]">{label}</div>
+        <div style={{ fontSize: '24px', fontWeight: 700, lineHeight: 1, marginBottom: '4px', color: 'var(--text-primary)' }}>{count}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{label}</div>
       </div>
     </div>
   );

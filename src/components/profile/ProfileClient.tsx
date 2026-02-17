@@ -4,19 +4,7 @@ import { BuilderProfile, Participant } from '@/types';
 import { useInView } from '@/hooks/useInView';
 import { useCountUp } from '@/hooks/useCountUp';
 import { BADGES, LANGUAGE_COLORS } from '@/lib/constants';
-import {
-  Github,
-  Twitter,
-  ExternalLink,
-  Star,
-  GitFork,
-  Users,
-  Calendar,
-  MapPin,
-  Trophy,
-  ArrowDown,
-  Code,
-} from 'lucide-react';
+import { Github, Twitter, ExternalLink, Star, GitFork, Users, Calendar, Trophy, ArrowDown, Code } from 'lucide-react';
 import Link from 'next/link';
 
 interface ProfileClientProps {
@@ -25,264 +13,130 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({ profile, participations }: ProfileClientProps) {
-  // Get GitHub data from the latest participation that has it
   const latestWithGithub = participations.find((p) => p.github_username);
-  const githubData = latestWithGithub
-    ? {
-        avatar: latestWithGithub.github_avatar_url,
-        bio: latestWithGithub.github_bio,
-        repos: latestWithGithub.github_public_repos,
-        followers: latestWithGithub.github_followers,
-        stars: latestWithGithub.github_total_stars,
-        languages: latestWithGithub.github_top_languages || [],
-        reposData: latestWithGithub.github_repos_data || [],
-        createdAt: latestWithGithub.github_created_at,
-      }
-    : null;
-
-  const totalVotes = participations.reduce((sum, p) => sum + p.vote_count, 0);
-  const totalWins = participations.filter((p) => p.is_winner).length;
+  const githubData = latestWithGithub ? {
+    avatar: latestWithGithub.github_avatar_url,
+    bio: latestWithGithub.github_bio,
+    repos: latestWithGithub.github_public_repos,
+    followers: latestWithGithub.github_followers,
+    stars: latestWithGithub.github_total_stars,
+    languages: latestWithGithub.github_top_languages || [],
+    reposData: latestWithGithub.github_repos_data || [],
+    createdAt: latestWithGithub.github_created_at,
+  } : null;
 
   return (
-    <div className="min-h-screen">
-      {/* Section 1: Hero */}
-      <ProfileHeroSection
-        profile={profile}
-        githubData={githubData}
-      />
-
-      {/* Section 2: Stats */}
-      {githubData && (
-        <GitHubStatsSection githubData={githubData} />
-      )}
-
-      {/* Section 3: Repositories */}
-      {githubData && githubData.reposData.length > 0 && (
-        <ReposSection repos={githubData.reposData} username={profile.github_username || ''} />
-      )}
-
-      {/* Section 4: Builder Journey */}
-      <JourneySection participations={participations} />
-
-      {/* Section 5: Badges */}
-      <BadgesSection
-        earnedBadges={profile.badges || []}
-        totalVotes={totalVotes}
-        totalWins={totalWins}
-        githubData={githubData}
-      />
+    <div style={{ minHeight: '100vh' }}>
+      <ProfileHero profile={profile} githubData={githubData} />
+      {githubData && <GitHubStats githubData={githubData} />}
+      {githubData && githubData.reposData.length > 0 && <Repos repos={githubData.reposData} username={profile.github_username || ''} />}
+      {participations.length > 0 && <Journey participations={participations} />}
+      <BadgesGrid earnedBadges={profile.badges || []} />
     </div>
   );
 }
 
-// ==========================================
-// SECTION 1: HERO
-// ==========================================
-function ProfileHeroSection({
-  profile,
-  githubData,
-}: {
-  profile: BuilderProfile;
-  githubData: any;
-}) {
+/* ============ HERO ============ */
+function ProfileHero({ profile, githubData }: { profile: BuilderProfile; githubData: any }) {
   return (
-    <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] rounded-full bg-[var(--bh-accent)] opacity-[0.03] blur-[100px]" />
-        <div className="absolute bottom-1/3 right-1/3 w-[400px] h-[400px] rounded-full bg-[var(--st-accent)] opacity-[0.03] blur-[100px]" />
-      </div>
+    <section style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '25%', left: '30%', width: 400, height: 400, borderRadius: '50%', background: 'var(--bh-accent)', opacity: 0.02, filter: 'blur(100px)' }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '30%', width: 400, height: 400, borderRadius: '50%', background: 'var(--st-accent)', opacity: 0.02, filter: 'blur(100px)' }} />
 
-      <div className="relative z-10 text-center px-4">
-        {/* Avatar */}
-        <div className="mb-6 animate-fade-in-up">
-          <div className="relative inline-block">
-            <img
-              src={
-                    profile.discord_avatar_url ||
-                    githubData?.avatar ||
-                    `https://api.dicebear.com/7.x/identicon/svg?seed=${profile.discord_id}`
-                    }
-              alt={profile.discord_username}
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover border-2 border-white/10 shadow-2xl animate-float"
-            />
-            {(profile.total_wins || 0) > 0 && (
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-[var(--gold)] flex items-center justify-center text-lg shadow-lg animate-pop-in">
-                👑
-              </div>
-            )}
-          </div>
+      <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, maxWidth: '600px', width: '100%' }}>
+        <div style={{ marginBottom: '24px' }} className="animate-fade-in-up">
+          <img
+            src={profile.discord_avatar_url || githubData?.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${profile.discord_id}`}
+            alt={profile.discord_username}
+            style={{ width: 120, height: 120, borderRadius: '20px', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)', margin: '0 auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
+            className="animate-float"
+          />
         </div>
 
-        {/* Name */}
-        <h1
-          className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 animate-fade-in-up"
-          style={{ animationDelay: '0.2s' }}
-        >
+        <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 700, marginBottom: '12px' }} className="animate-fade-in-up">
           {profile.discord_username}
         </h1>
 
-        {/* Bio */}
         {githubData?.bio && (
-          <p
-            className="text-base sm:text-lg text-[var(--text-secondary)] max-w-md mx-auto mb-6 animate-fade-in-up"
-            style={{ animationDelay: '0.3s' }}
-          >
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.6, fontStyle: 'italic' }} className="animate-fade-in-up">
             &ldquo;{githubData.bio}&rdquo;
           </p>
         )}
 
-        {/* Social Links */}
-        <div
-          className="flex items-center justify-center gap-3 mb-8 animate-fade-in-up"
-          style={{ animationDelay: '0.4s' }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }} className="animate-fade-in-up">
           {profile.github_username && (
-            <a
-              href={`https://github.com/${profile.github_username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-[var(--text-secondary)] hover:text-white hover:border-white/20 transition-all"
-            >
-              <Github className="w-4 h-4" />
-              {profile.github_username}
+            <a href={`https://github.com/${profile.github_username}`} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '13px', color: 'var(--text-secondary)', transition: 'all 0.3s' }}>
+              <Github style={{ width: 16, height: 16 }} /> {profile.github_username}
             </a>
           )}
           {profile.twitter_handle && (
-            <a
-              href={`https://twitter.com/${profile.twitter_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-[var(--text-secondary)] hover:text-[#1DA1F2] hover:border-[#1DA1F2]/20 transition-all"
-            >
-              <Twitter className="w-4 h-4" />
-              @{profile.twitter_handle}
+            <a href={`https://twitter.com/${profile.twitter_handle}`} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '13px', color: 'var(--text-secondary)', transition: 'all 0.3s' }}>
+              <Twitter style={{ width: 16, height: 16 }} /> @{profile.twitter_handle}
             </a>
           )}
         </div>
 
-        {/* Quick Stats Pills */}
-        <div
-          className="flex flex-wrap items-center justify-center gap-3 mb-10 animate-fade-in-up"
-          style={{ animationDelay: '0.5s' }}
-        >
-          <StatPill
-            icon={<Trophy className="w-3.5 h-3.5 text-[var(--gold)]" />}
-            label={`${profile.total_wins || 0} Wins`}
-          />
-          <StatPill
-            icon={<Code className="w-3.5 h-3.5 text-[var(--bh-accent)]" />}
-            label={`${profile.total_participations || 0} Projects`}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }} className="animate-fade-in-up">
+          <Pill icon={<Trophy style={{ width: 14, height: 14, color: 'var(--gold)' }} />} text={`${profile.total_wins || 0} Wins`} />
+          <Pill icon={<Code style={{ width: 14, height: 14, color: 'var(--bh-accent)' }} />} text={`${profile.total_participations || 0} Projects`} />
           {githubData?.createdAt && (
-            <StatPill
-              icon={<Calendar className="w-3.5 h-3.5 text-[var(--st-accent)]" />}
-              label={`Since ${new Date(githubData.createdAt).getFullYear()}`}
-            />
+            <Pill icon={<Calendar style={{ width: 14, height: 14, color: 'var(--st-accent)' }} />} text={`Since ${new Date(githubData.createdAt).getFullYear()}`} />
           )}
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
-          <ArrowDown className="w-5 h-5 mx-auto text-[var(--text-secondary)] animate-bounce" />
         </div>
       </div>
     </section>
   );
 }
 
-function StatPill({ icon, label }: { icon: React.ReactNode; label: string }) {
+function Pill({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-sm text-[var(--text-secondary)]">
-      {icon}
-      {label}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '9999px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+      {icon} {text}
     </div>
   );
 }
 
-// ==========================================
-// SECTION 2: GITHUB STATS
-// ==========================================
-function GitHubStatsSection({ githubData }: { githubData: any }) {
+/* ============ GITHUB STATS ============ */
+function GitHubStats({ githubData }: { githubData: any }) {
   const { ref, isInView } = useInView(0.2);
-
   const repoCount = useCountUp(githubData.repos || 0, 1500, isInView);
   const starCount = useCountUp(githubData.stars || 0, 1500, isInView);
   const followerCount = useCountUp(githubData.followers || 0, 1500, isInView);
 
   return (
-    <section ref={ref} className="py-16 sm:py-24 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Section Title */}
-        <div
-          className={`text-center mb-12 transition-all duration-700 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-            <Github className="w-6 h-6 sm:w-7 sm:h-7 inline mr-2" />
-            GitHub Stats
-          </h2>
-          <p className="text-[var(--text-secondary)]">Open source contributions and activity</p>
+    <section ref={ref} style={{ padding: '64px 24px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <h2 style={{ textAlign: 'center', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>
+          <Github style={{ width: 24, height: 24, display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+          GitHub Stats
+        </h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '40px' }}>
+          Open source contributions and activity
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' }}>
+          <StatBox value={repoCount} label="Repositories" icon={<Code style={{ width: 20, height: 20, color: 'var(--bh-accent)' }} />} />
+          <StatBox value={starCount} label="Stars Earned" icon={<Star style={{ width: 20, height: 20, color: 'var(--gold)' }} />} />
+          <StatBox value={followerCount} label="Followers" icon={<Users style={{ width: 20, height: 20, color: 'var(--st-accent)' }} />} />
         </div>
 
-        {/* Stat Boxes */}
-        <div className="grid grid-cols-3 gap-4 sm:gap-6 mb-12">
-          <StatBox
-            value={repoCount}
-            label="Repositories"
-            icon={<Code className="w-5 h-5 text-[var(--bh-accent)]" />}
-            isInView={isInView}
-            delay={0.1}
-          />
-          <StatBox
-            value={starCount}
-            label="Stars Earned"
-            icon={<Star className="w-5 h-5 text-[var(--gold)]" />}
-            isInView={isInView}
-            delay={0.2}
-          />
-          <StatBox
-            value={followerCount}
-            label="Followers"
-            icon={<Users className="w-5 h-5 text-[var(--st-accent)]" />}
-            isInView={isInView}
-            delay={0.3}
-          />
-        </div>
-
-        {/* Language Breakdown */}
         {githubData.languages && githubData.languages.length > 0 && (
-          <div
-            className={`glass-card p-6 transition-all duration-700 delay-300 ${
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-4">
-              Languages Used
-            </h3>
-            <div className="space-y-3">
-              {githubData.languages.map((lang: any, index: number) => (
+          <div className="glass-card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '16px' }}>Languages Used</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {githubData.languages.map((lang: any, i: number) => (
                 <div key={lang.name}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: lang.color || '#888' }}
-                      />
-                      <span className="text-[var(--text-primary)]">{lang.name}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: lang.color || '#888' }} />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{lang.name}</span>
                     </div>
-                    <span className="text-[var(--text-secondary)]">{lang.percentage}%</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{lang.percentage}%</span>
                   </div>
                   <div className="progress-bar">
-                    <div
-                      className="progress-bar-fill"
-                      style={{
-                        width: isInView ? `${lang.percentage}%` : '0%',
-                        backgroundColor: lang.color || '#888',
-                        transition: `width 1s ease-out ${0.5 + index * 0.15}s`,
-                      }}
-                    />
+                    <div className="progress-bar-fill" style={{ width: isInView ? `${lang.percentage}%` : '0%', backgroundColor: lang.color || '#888', transition: `width 1s ease-out ${0.3 + i * 0.1}s` }} />
                   </div>
                 </div>
               ))}
@@ -294,96 +148,42 @@ function GitHubStatsSection({ githubData }: { githubData: any }) {
   );
 }
 
-function StatBox({
-  value,
-  label,
-  icon,
-  isInView,
-  delay,
-}: {
-  value: number;
-  label: string;
-  icon: React.ReactNode;
-  isInView: boolean;
-  delay: number;
-}) {
+function StatBox({ value, label, icon }: { value: number; label: string; icon: React.ReactNode }) {
   return (
-    <div
-      className={`glass-card p-4 sm:p-6 text-center transition-all duration-500 ${
-        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-      style={{ transitionDelay: `${delay}s` }}
-    >
-      <div className="flex justify-center mb-2">{icon}</div>
-      <div className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
-        {value.toLocaleString()}
-      </div>
-      <div className="text-xs sm:text-sm text-[var(--text-secondary)]">{label}</div>
+    <div className="glass-card" style={{ padding: '24px', textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>{icon}</div>
+      <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{value.toLocaleString()}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{label}</div>
     </div>
   );
 }
 
-// ==========================================
-// SECTION 3: REPOSITORIES
-// ==========================================
-function ReposSection({ repos, username }: { repos: any[]; username: string }) {
+/* ============ REPOS ============ */
+function Repos({ repos, username }: { repos: any[]; username: string }) {
   const { ref, isInView } = useInView(0.1);
 
   return (
-    <section ref={ref} className="py-16 sm:py-24 px-4 bg-white/[0.01]">
-      <div className="max-w-4xl mx-auto">
-        <div
-          className={`text-center mb-12 transition-all duration-700 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">Featured Repositories</h2>
-          <p className="text-[var(--text-secondary)]">Top open source projects</p>
-        </div>
+    <section ref={ref} style={{ padding: '64px 24px', background: 'rgba(255,255,255,0.005)' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <h2 style={{ textAlign: 'center', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>Featured Repositories</h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '40px' }}>Top open source projects</p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {repos.slice(0, 6).map((repo: any, index: number) => (
-            <a
-              key={repo.name}
-              href={repo.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`glass-card p-5 group transition-all duration-500 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              } ${index % 2 === 0 ? '' : ''}`}
-              style={{ transitionDelay: `${(index + 1) * 0.1}s` }}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="text-sm font-semibold text-[var(--st-accent)] group-hover:text-[var(--bh-accent)] transition-colors truncate mr-2">
-                  📂 {repo.name}
-                </h3>
-                <ExternalLink className="w-3.5 h-3.5 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+          {repos.slice(0, 6).map((repo: any) => (
+            <a key={repo.name} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="glass-card" style={{ padding: '20px', display: 'block', transition: 'all 0.3s' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--st-accent)' }}>📂 {repo.name}</h3>
+                <ExternalLink style={{ width: 14, height: 14, color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }} />
               </div>
-
               {repo.description && (
-                <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-3">
-                  {repo.description}
-                </p>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }} className="line-clamp-2">{repo.description}</p>
               )}
-
-              <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
-                <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-[var(--gold)]" />
-                  {repo.stargazers_count}
-                </span>
-                <span className="flex items-center gap-1">
-                  <GitFork className="w-3 h-3" />
-                  {repo.forks_count}
-                </span>
+              <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Star style={{ width: 12, height: 12, color: 'var(--gold)' }} />{repo.stargazers_count}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><GitFork style={{ width: 12, height: 12 }} />{repo.forks_count}</span>
                 {repo.language && (
-                  <span className="flex items-center gap-1">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          LANGUAGE_COLORS[repo.language] || '#888',
-                      }}
-                    />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: LANGUAGE_COLORS[repo.language] || '#888' }} />
                     {repo.language}
                   </span>
                 )}
@@ -393,15 +193,10 @@ function ReposSection({ repos, username }: { repos: any[]; username: string }) {
         </div>
 
         {username && (
-          <div className="text-center mt-8">
-            <a
-              href={`https://github.com/${username}?tab=repositories`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 text-sm text-[var(--text-secondary)] hover:text-white hover:border-white/20 transition-all"
-            >
-              <Github className="w-4 h-4" />
-              View all repositories
+          <div style={{ textAlign: 'center', marginTop: '32px' }}>
+            <a href={`https://github.com/${username}?tab=repositories`} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <Github style={{ width: 16, height: 16 }} /> View all repositories
             </a>
           </div>
         )}
@@ -410,151 +205,60 @@ function ReposSection({ repos, username }: { repos: any[]; username: string }) {
   );
 }
 
-// ==========================================
-// SECTION 4: BUILDER JOURNEY
-// ==========================================
-function JourneySection({
-  participations,
-}: {
-  participations: (Participant & { event?: any })[];
-}) {
+/* ============ JOURNEY ============ */
+function Journey({ participations }: { participations: (Participant & { event?: any })[] }) {
   const { ref, isInView } = useInView(0.1);
 
-  if (participations.length === 0) return null;
-
   return (
-    <section ref={ref} className="py-16 sm:py-24 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div
-          className={`text-center mb-12 transition-all duration-700 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">Builder Journey</h2>
-          <p className="text-[var(--text-secondary)]">Every project, every vote, every milestone</p>
-        </div>
+    <section ref={ref} style={{ padding: '64px 24px' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h2 style={{ textAlign: 'center', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>Builder Journey</h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '40px' }}>Every project, every vote, every milestone</p>
 
-        {/* Timeline */}
-        <div className="relative">
-          {/* Timeline Line */}
-          <div
-            className="absolute left-5 sm:left-6 top-0 bottom-0 w-px bg-gradient-to-b from-[var(--bh-accent)]/30 via-[var(--st-accent)]/30 to-transparent"
-            style={{
-              height: isInView ? '100%' : '0%',
-              transition: 'height 1.5s ease-out',
-            }}
-          />
+        <div style={{ position: 'relative' }}>
+          {/* Timeline line */}
+          <div style={{ position: 'absolute', left: '20px', top: 0, bottom: 0, width: '2px', background: 'linear-gradient(180deg, var(--bh-accent) 0%, var(--st-accent) 100%)', opacity: 0.15 }} />
 
-          {/* Timeline Items */}
-          <div className="space-y-8">
-            {participations.map((p, index) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {participations.map((p) => {
               const isBH = p.event?.event_type === 'builders_hub';
-
               return (
-                <div
-                  key={p.id}
-                  className={`relative pl-14 sm:pl-16 transition-all duration-500 ${
-                    isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-[-20px]'
-                  }`}
-                  style={{ transitionDelay: `${(index + 1) * 0.2}s` }}
-                >
-                  {/* Timeline Dot */}
-                  <div
-                    className={`absolute left-3 sm:left-4 top-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 ${
-                      p.is_winner
-                        ? 'bg-[var(--gold)] border-[var(--gold)] animate-glow-gold'
-                        : isBH
-                        ? 'bg-[var(--bh-accent)]/20 border-[var(--bh-accent)]'
-                        : 'bg-[var(--st-accent)]/20 border-[var(--st-accent)]'
-                    }`}
-                  >
-                    {p.is_winner && (
-                      <span className="absolute -top-1 -right-1 text-[10px]">🏆</span>
-                    )}
-                  </div>
+                <div key={p.id} style={{ paddingLeft: '56px', position: 'relative' }}>
+                  {/* Dot */}
+                  <div style={{
+                    position: 'absolute', left: '12px', top: '12px', width: '18px', height: '18px', borderRadius: '50%',
+                    border: `2px solid ${p.is_winner ? 'var(--gold)' : isBH ? 'var(--bh-accent)' : 'var(--st-accent)'}`,
+                    background: p.is_winner ? 'var(--gold)' : `${isBH ? 'rgba(255,140,0,0.2)' : 'rgba(0,200,255,0.2)'}`,
+                  }} />
 
-                  {/* Content Card */}
-                  <div
-                    className={`${
-                      isBH ? 'glass-card-bh' : 'glass-card-st'
-                    } p-4 sm:p-5`}
-                  >
-                    {/* Event Badge */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          isBH
-                            ? 'bg-[var(--bh-accent)]/10 text-[var(--bh-accent)]'
-                            : 'bg-[var(--st-accent)]/10 text-[var(--st-accent)]'
-                        }`}
-                      >
-                        {isBH ? '🏗️ Builder\'s Hub' : '🦈 Shark Tank'}
+                  <div className={isBH ? 'glass-card-bh' : 'glass-card-st'} style={{ padding: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ padding: '2px 10px', borderRadius: '9999px', fontSize: '11px', fontWeight: 500, background: isBH ? 'rgba(255,140,0,0.1)' : 'rgba(0,200,255,0.1)', color: isBH ? 'var(--bh-accent)' : 'var(--st-accent)' }}>
+                        {isBH ? "🏗️ Builder's Hub" : '🦈 Shark Tank'}
                       </span>
-                      <span className="text-xs text-[var(--text-secondary)]">
-                        Week {p.event?.week_number || '?'}
-                      </span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Week {p.event?.week_number || '?'}</span>
                       {p.is_winner && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--gold)]/10 text-[var(--gold)]">
-                          Winner 🏆
-                        </span>
+                        <span style={{ padding: '2px 10px', borderRadius: '9999px', fontSize: '11px', fontWeight: 500, background: 'rgba(255,215,0,0.1)', color: 'var(--gold)' }}>Winner 🏆</span>
                       )}
                     </div>
 
-                    {/* Project Info */}
-                    <h3
-                      className="text-base font-semibold mb-1"
-                      style={{ color: isBH ? 'var(--bh-accent)' : 'var(--st-accent)' }}
-                    >
-                      {p.project_name}
-                    </h3>
-                    <p className="text-sm text-[var(--text-secondary)] mb-3">
-                      {p.project_one_liner}
-                    </p>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: isBH ? 'var(--bh-accent)' : 'var(--st-accent)', marginBottom: '4px' }}>{p.project_name}</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>{p.project_one_liner}</p>
 
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-3">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
                       {p.project_category && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-[var(--text-secondary)]">
-                          {p.project_category}
-                        </span>
+                        <span style={{ padding: '2px 8px', borderRadius: '9999px', fontSize: '10px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>{p.project_category}</span>
                       )}
                       {p.tech_stack.slice(0, 3).map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-[var(--text-secondary)]"
-                        >
-                          {tech}
-                        </span>
+                        <span key={tech} style={{ padding: '2px 8px', borderRadius: '9999px', fontSize: '10px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>{tech}</span>
                       ))}
                     </div>
 
-                    {/* Vote Count + Links */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[var(--text-secondary)]">
-                        🗳️ {p.vote_count} vote{p.vote_count !== 1 ? 's' : ''}
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        {p.project_link && (
-                          <a
-                            href={p.project_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[var(--text-secondary)] hover:text-white transition-colors"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                        {p.project_github_link && (
-                          <a
-                            href={p.project_github_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[var(--text-secondary)] hover:text-white transition-colors"
-                          >
-                            <Github className="w-3.5 h-3.5" />
-                          </a>
-                        )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>🗳️ {p.vote_count} vote{p.vote_count !== 1 ? 's' : ''}</span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {p.project_link && <a href={p.project_link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)' }}><ExternalLink style={{ width: 14, height: 14 }} /></a>}
+                        {p.project_github_link && <a href={p.project_github_link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)' }}><Github style={{ width: 14, height: 14 }} /></a>}
                       </div>
                     </div>
                   </div>
@@ -568,86 +272,42 @@ function JourneySection({
   );
 }
 
-// ==========================================
-// SECTION 5: BADGES
-// ==========================================
-function BadgesSection({
-  earnedBadges,
-  totalVotes,
-  totalWins,
-  githubData,
-}: {
-  earnedBadges: string[];
-  totalVotes: number;
-  totalWins: number;
-  githubData: any;
-}) {
+/* ============ BADGES ============ */
+function BadgesGrid({ earnedBadges }: { earnedBadges: string[] }) {
   const { ref, isInView } = useInView(0.2);
-
   const allBadgeKeys = Object.keys(BADGES) as (keyof typeof BADGES)[];
   const earnedCount = earnedBadges.length;
   const totalCount = allBadgeKeys.length;
   const progressPercent = Math.round((earnedCount / totalCount) * 100);
 
   return (
-    <section ref={ref} className="py-16 sm:py-24 px-4 bg-white/[0.01]">
-      <div className="max-w-3xl mx-auto">
-        <div
-          className={`text-center mb-12 transition-all duration-700 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">Badges & Achievements</h2>
-          <p className="text-[var(--text-secondary)]">
-            {earnedCount} of {totalCount} badges unlocked
-          </p>
+    <section ref={ref} style={{ padding: '64px 24px', background: 'rgba(255,255,255,0.005)' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h2 style={{ textAlign: 'center', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>Badges & Achievements</h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '16px' }}>
+          {earnedCount} of {totalCount} badges unlocked
+        </p>
 
-          {/* Progress Bar */}
-          <div className="max-w-xs mx-auto mt-4">
-            <div className="progress-bar">
-              <div
-                className="progress-bar-fill progress-bar-fill-gold"
-                style={{
-                  width: isInView ? `${progressPercent}%` : '0%',
-                  transition: 'width 1.5s ease-out 0.3s',
-                }}
-              />
-            </div>
-            <div className="text-xs text-[var(--text-secondary)] mt-1">
-              {progressPercent}% Complete
-            </div>
+        <div style={{ maxWidth: '250px', margin: '0 auto 40px' }}>
+          <div className="progress-bar">
+            <div className="progress-bar-fill progress-bar-fill-gold" style={{ width: isInView ? `${progressPercent}%` : '0%', transition: 'width 1.5s ease-out 0.3s' }} />
           </div>
+          <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>{progressPercent}% Complete</div>
         </div>
 
-        {/* Badge Grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-          {allBadgeKeys.map((key, index) => {
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+          {allBadgeKeys.map((key) => {
             const badge = BADGES[key];
             const isEarned = earnedBadges.includes(key);
-
             return (
-              <div
-                key={key}
-                className={`text-center transition-all duration-500 ${
-                  isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                }`}
-                style={{ transitionDelay: `${index * 0.08}s` }}
-                title={isEarned ? `${badge.name}: ${badge.description}` : `🔒 ${badge.requirement}`}
-              >
+              <div key={key} style={{ textAlign: 'center' }} title={isEarned ? `${badge.name}: ${badge.description}` : `🔒 ${badge.requirement}`}>
                 <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-2 transition-transform ${
-                    isEarned
-                      ? 'glass-card badge-earned'
-                      : 'bg-white/[0.02] border border-white/5 badge-locked'
-                  }`}
+                  className={isEarned ? 'glass-card badge-earned' : 'badge-locked'}
+                  style={{ width: '60px', height: '60px', margin: '0 auto 8px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', background: isEarned ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)', border: `1px solid ${isEarned ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)'}` }}
                 >
                   {isEarned ? badge.icon : '🔒'}
                 </div>
-                <div
-                  className={`text-[10px] sm:text-xs ${
-                    isEarned ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]/50'
-                  }`}
-                >
+                <div style={{ fontSize: '10px', color: isEarned ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                   {isEarned ? badge.name : '???'}
                 </div>
               </div>

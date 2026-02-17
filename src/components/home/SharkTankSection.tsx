@@ -25,184 +25,147 @@ export default function SharkTankSection() {
           .limit(1);
 
         if (events && events.length > 0) {
-          const event = events[0];
-          setCurrentEvent(event);
-
+          setCurrentEvent(events[0]);
           const { data: parts } = await supabase
             .from('participants')
             .select('*')
-            .eq('event_id', event.id)
+            .eq('event_id', events[0].id)
             .order('vote_count', { ascending: false });
-
           if (parts) setParticipants(parts);
         }
       } catch (error) {
-        console.error('Error fetching shark tank data:', error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
   const maxVotes = Math.max(...participants.map((p) => p.vote_count), 1);
 
   return (
-    <section id="shark-tank" className="st-section py-20 sm:py-28 relative">
+    <section id="shark-tank" className="st-section" style={{ padding: '80px 0', position: 'relative' }}>
       {/* Bubbles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
-        <div className="bubble" />
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div className="bubble" /><div className="bubble" /><div className="bubble" /><div className="bubble" />
+        <div className="bubble" /><div className="bubble" /><div className="bubble" /><div className="bubble" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div
-          ref={ref}
-          className={`text-center mb-12 sm:mb-16 transition-all duration-700 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--st-accent)]/10 border border-[var(--st-accent)]/20 mb-6">
-            <Fish className="w-4 h-4 text-[var(--st-accent)]" />
-            <span className="text-sm font-medium text-[var(--st-accent)]">
-              Shark Tank
-            </span>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+        {/* Header */}
+        <div ref={ref} style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              background: 'rgba(0, 200, 255, 0.08)',
+              border: '1px solid rgba(0, 200, 255, 0.2)',
+              marginBottom: '24px',
+            }}
+          >
+            <Fish style={{ width: 16, height: 16, color: 'var(--st-accent)' }} />
+            <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--st-accent)' }}>Shark Tank</span>
             {currentEvent && (
-              <span className="text-xs text-[var(--text-secondary)]">
-                — Week {currentEvent.week_number}
-              </span>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>— Week {currentEvent.week_number}</span>
             )}
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-[var(--text-primary)]">The </span>
-            <span className="bg-gradient-to-r from-[var(--st-accent-light)] to-[var(--st-accent)] bg-clip-text text-transparent">
+          <h2 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 700, marginBottom: '16px' }}>
+            <span style={{ color: 'var(--text-primary)' }}>The </span>
+            <span style={{ background: 'linear-gradient(90deg, var(--st-accent-light), var(--st-accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Deep End
             </span>
           </h2>
 
-          <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
-            High stakes, big pitches. Builders present their boldest ideas
-            and the community decides who survives the tank.
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', maxWidth: '560px', margin: '0 auto', lineHeight: 1.7 }}>
+            High stakes, big pitches. Builders present their boldest ideas and the community decides who survives the tank.
           </p>
 
           {currentEvent && (
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/5">
+            <div
+              style={{
+                marginTop: '24px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
               <div
-                className={`w-2 h-2 rounded-full ${
-                  currentEvent.voting_status === 'open'
-                    ? 'bg-green-500 animate-pulse'
-                    : currentEvent.voting_status === 'upcoming'
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
-                }`}
+                style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: currentEvent.voting_status === 'open' ? '#22c55e' : currentEvent.voting_status === 'upcoming' ? '#eab308' : '#ef4444',
+                }}
               />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Voting{' '}
-                {currentEvent.voting_status === 'open'
-                  ? 'Open'
-                  : currentEvent.voting_status === 'upcoming'
-                  ? 'Opens Soon'
-                  : 'Closed'}
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Voting {currentEvent.voting_status === 'open' ? 'Open' : currentEvent.voting_status === 'upcoming' ? 'Opens Soon' : 'Closed'}
               </span>
-              {currentEvent.voting_closes_at && currentEvent.voting_status === 'open' && (
-                <span className="text-xs text-[var(--text-secondary)] flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Closes{' '}
-                  {new Date(currentEvent.voting_closes_at).toLocaleDateString()}
-                </span>
-              )}
             </div>
           )}
         </div>
 
-        {/* Participants Grid */}
+        {/* Cards */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
             {[1, 2, 3].map((i) => (
-              <SharkCardSkeleton key={i} />
+              <div key={i} className="glass-card-st" style={{ padding: '24px', height: '300px' }}>
+                <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
+              </div>
             ))}
           </div>
         ) : participants.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {participants.map((participant, index) => (
-                <div
-                  key={participant.id}
-                  className={`transition-all duration-500 ${
-                    isInView
-                      ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-8'
-                  }`}
-                  style={{ transitionDelay: `${(index + 1) * 150}ms` }}
-                >
-                  <BuilderCard
-                    participant={participant}
-                    variant="shark_tank"
-                    maxVotes={maxVotes}
-                  />
-                </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: participants.length === 1 ? '1fr' : participants.length === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                gap: '24px',
+                maxWidth: participants.length === 1 ? '420px' : participants.length === 2 ? '840px' : '100%',
+                margin: '0 auto',
+              }}
+            >
+              {participants.map((participant) => (
+                <BuilderCard key={participant.id} participant={participant} variant="shark_tank" maxVotes={maxVotes} />
               ))}
             </div>
 
-            <div className="text-center mt-10">
+            <div style={{ textAlign: 'center', marginTop: '48px' }}>
               <Link
                 href="/shark-tank"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[var(--st-border)] text-[var(--st-accent)] hover:bg-[var(--st-accent)]/5 transition-all hover:scale-105"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 24px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(0, 200, 255, 0.2)',
+                  color: 'var(--st-accent)',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
               >
                 View All Pitches
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight style={{ width: 16, height: 16 }} />
               </Link>
             </div>
           </>
         ) : (
-          <EmptyState />
+          <div className="glass-card-st" style={{ padding: '64px 24px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🦈</div>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Coming Soon</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+              The Shark Tank is preparing! Pitches will appear here once the first round begins.
+            </p>
+          </div>
         )}
       </div>
     </section>
-  );
-}
-
-function SharkCardSkeleton() {
-  return (
-    <div className="glass-card-st p-6">
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-14 h-14 rounded-xl skeleton" />
-        <div className="flex-1">
-          <div className="w-32 h-5 skeleton mb-2" />
-          <div className="w-20 h-3 skeleton" />
-        </div>
-      </div>
-      <div className="w-full h-36 skeleton mb-4 rounded-lg" />
-      <div className="w-48 h-5 skeleton mb-2" />
-      <div className="w-full h-4 skeleton mb-4" />
-      <div className="flex gap-2 mb-4">
-        <div className="w-16 h-5 skeleton rounded-full" />
-        <div className="w-16 h-5 skeleton rounded-full" />
-      </div>
-      <div className="w-full h-8 skeleton rounded-lg" />
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="glass-card-st p-12 sm:p-16 text-center max-w-lg mx-auto">
-      <div className="text-5xl mb-4">🦈</div>
-      <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-        Coming Soon
-      </h3>
-      <p className="text-sm text-[var(--text-secondary)]">
-        The Shark Tank is preparing! Pitches will appear here once the first round begins.
-      </p>
-    </div>
   );
 }
