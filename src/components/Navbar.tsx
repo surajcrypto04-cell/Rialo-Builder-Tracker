@@ -57,20 +57,17 @@ export default function Navbar() {
           }}
         >
           {/* LEFT — Logo */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, textDecoration: 'none' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, var(--bh-accent), var(--st-accent))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Zap style={{ width: 20, height: 20, color: 'white' }} />
-            </div>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, textDecoration: 'none' }}>
+              <img
+                src="/rialo-logo.png"
+                alt="Rialo"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  objectFit: 'cover',
+                }}
+  />
             <span
               style={{
                 fontSize: '16px',

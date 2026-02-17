@@ -1,6 +1,6 @@
 'use client';
 
-import { Zap, Heart, Github, Twitter, ArrowUpRight, Hammer, Fish, Trophy } from 'lucide-react';
+import { Zap, Heart, Github, Twitter, ArrowUpRight, Hammer, Fish, Trophy, Send, PlaneTakeoff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -24,9 +24,11 @@ export default function Footer() {
           {/* Brand */}
           <div style={{ maxWidth: '340px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: '14px', background: 'linear-gradient(135deg, var(--bh-accent), var(--st-accent))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Zap style={{ width: 24, height: 24, color: 'white' }} />
-              </div>
+              <img
+                src="/rialo-logo.png"
+                alt="Rialo"
+                style={{ width: 44, height: 44, borderRadius: '14px', objectFit: 'cover' }}
+              />
               <div>
                 <span style={{ fontSize: '20px', fontWeight: 800, background: 'linear-gradient(90deg, var(--bh-accent), var(--st-accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block', lineHeight: 1.2 }}>
                   Rialo Arena
@@ -104,11 +106,11 @@ export default function Footer() {
               Community
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <FooterExtLink href="https://discord.gg/rialo" label="Discord Server" icon={
+              <FooterExtLink href="https://discord.gg/rialoprotocol" label="Discord Server" icon={
                 <svg style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.373-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" /></svg>
               } />
-              <FooterExtLink href="https://twitter.com/rialo" label="Twitter / X" icon={<Twitter style={{ width: 14, height: 14 }} />} />
-              <FooterExtLink href="https://github.com/rialo" label="GitHub" icon={<Github style={{ width: 14, height: 14 }} />} />
+              <FooterExtLink href="https://x.com/RialoHQ?t=ZYwe0bGEEHq4mwkYSCJeog&s=09" label="Twitter / X" icon={<Twitter style={{ width: 14, height: 14 }} />} />
+              <FooterExtLink href="https://t.me/rialoprotocol" label="Telegram" icon={<Send style={{ width: 14, height: 14 }} />} />
             </div>
           </div>
 
@@ -132,9 +134,9 @@ export default function Footer() {
           </p>
 
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            Built with
+            Built by @SurajCrypto69 with
             <Heart style={{ width: 12, height: 12, color: '#ef4444', fill: '#ef4444' }} />
-            for the builder community
+            for Rialo community
           </p>
         </div>
       </div>
