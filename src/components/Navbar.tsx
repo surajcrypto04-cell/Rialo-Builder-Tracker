@@ -23,9 +23,7 @@ export default function Navbar() {
   const user = session?.user as any;
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -33,114 +31,325 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'navbar-glass shadow-lg' : 'bg-transparent'
-        }`}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          transition: 'all 0.3s',
+          background: isScrolled ? 'rgba(10, 10, 15, 0.85)' : 'transparent',
+          backdropFilter: isScrolled ? 'blur(20px)' : 'none',
+          WebkitBackdropFilter: isScrolled ? 'blur(20px)' : 'none',
+          borderBottom: isScrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--bh-accent)] to-[var(--st-accent)] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-base font-bold bg-gradient-to-r from-[var(--bh-accent)] to-[var(--st-accent)] bg-clip-text text-transparent hidden sm:inline">
-                Rialo Arena
-              </span>
-            </Link>
-
-            {/* Desktop Nav Links */}
-            <div className="hidden md:flex items-center gap-4">
-              <NavLink href="/" label="Home" />
-              <NavLink href="/builders-hub" label="Builder's Hub" icon={<Hammer className="w-3.5 h-3.5" />} />
-              <NavLink href="/shark-tank" label="Shark Tank" icon={<Fish className="w-3.5 h-3.5" />} />
-              <NavLink href="/hall-of-fame" label="Hall of Fame" icon={<Trophy className="w-3.5 h-3.5" />} />
-              {user?.isAdmin && (
-                <NavLink href="/admin" label="Admin" icon={<Shield className="w-3.5 h-3.5" />} />
-              )}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '0 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: '64px',
+          }}
+        >
+          {/* LEFT — Logo */}
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, textDecoration: 'none' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, var(--bh-accent), var(--st-accent))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Zap style={{ width: 20, height: 20, color: 'white' }} />
             </div>
+            <span
+              style={{
+                fontSize: '16px',
+                fontWeight: 700,
+                background: 'linear-gradient(90deg, var(--bh-accent), var(--st-accent))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Rialo Arena
+            </span>
+          </Link>
 
-            {/* Right Side: Auth + Mobile Toggle */}
-            <div className="flex items-center gap-4">
-              {status === 'loading' ? (
-                <div className="w-8 h-8 rounded-full skeleton" />
-              ) : session ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
-                    {user?.image && (
-                      <img
-                        src={user.image}
-                        alt=""
-                        className="w-7 h-7 sm:w-6 sm:h-6 rounded-full"
-                      />
-                    )}
-                    <span className="hidden sm:inline text-xs font-medium text-[var(--text-primary)] max-w-[100px] truncate">
-                      {user?.username || user?.name}
-                    </span>
-                    {user?.isClubMember && (
-                      <span className="hidden sm:inline text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--gold)]/10 text-[var(--gold)] font-bold">
-                        2x
-                      </span>
-                    )}
-                  </div>
+          {/* CENTER — Navigation Links (Desktop Only) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            className="hide-mobile"
+          >
+            <DesktopLink href="/" label="Home" />
+            <DesktopLink href="/builders-hub" label="Builder's Hub" icon={<Hammer style={{ width: 14, height: 14 }} />} />
+            <DesktopLink href="/shark-tank" label="Shark Tank" icon={<Fish style={{ width: 14, height: 14 }} />} />
+            <DesktopLink href="/hall-of-fame" label="Hall of Fame" icon={<Trophy style={{ width: 14, height: 14 }} />} />
+            {user?.isAdmin && (
+              <DesktopLink href="/admin" label="Admin" icon={<Shield style={{ width: 14, height: 14 }} />} />
+            )}
+          </div>
 
-                  {/* Sign Out */}
-                  <button
-                    onClick={() => signOut()}
-                    className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-all"
-                    title="Sign Out"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => signIn('discord')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-medium transition-all"
+          {/* RIGHT — Auth + Mobile Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            {/* Auth Section */}
+            {status === 'loading' ? (
+              <div className="skeleton" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+            ) : session ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* User Info — Desktop Only */}
+                <div
+                  className="hide-mobile"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '6px 12px',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
                 >
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sign in with Discord</span>
-                  <span className="sm:hidden">Sign in</span>
-                </button>
-              )}
+                  {user?.image && (
+                    <img
+                      src={user.image}
+                      alt=""
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  )}
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      color: 'var(--text-primary)',
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {user?.username || user?.name}
+                  </span>
+                  {user?.isClubMember && (
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: 'rgba(255, 215, 0, 0.1)',
+                        color: 'var(--gold)',
+                      }}
+                    >
+                      2x
+                    </span>
+                  )}
+                  {user?.isRialoMember && !user?.isClubMember && (
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: 'rgba(0, 200, 255, 0.1)',
+                        color: 'var(--st-accent)',
+                      }}
+                    >
+                      Member
+                    </span>
+                  )}
+                </div>
 
-              {/* Mobile Menu Toggle */}
+                {/* Mobile Avatar Only */}
+                <div className="hide-desktop">
+                  {user?.image && (
+                    <img
+                      src={user.image}
+                      alt=""
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Sign Out Button */}
+                <button
+                  onClick={() => signOut()}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#ef4444';
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                  title="Sign Out"
+                >
+                  <LogOut style={{ width: 18, height: 18 }} />
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
+                onClick={() => signIn('discord')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#5865F2',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#4752C4'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#5865F2'; }}
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                <LogIn style={{ width: 16, height: 16 }} />
+                <span className="hide-mobile">Sign in with Discord</span>
+                <span className="hide-desktop">Sign in</span>
               </button>
-            </div>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="hide-desktop"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+              }}
+            >
+              {isMobileMenuOpen ? <X style={{ width: 22, height: 22 }} /> : <Menu style={{ width: 22, height: 22 }} />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Dropdown */}
         <div
-          className={`md:hidden transition-all duration-300 overflow-hidden ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          style={{
+            overflow: 'hidden',
+            maxHeight: isMobileMenuOpen ? '400px' : '0px',
+            opacity: isMobileMenuOpen ? 1 : 0,
+            transition: 'all 0.3s ease',
+            background: 'rgba(10, 10, 15, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderTop: isMobileMenuOpen ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          }}
+          className="hide-desktop"
         >
-          <div className="navbar-glass border-t border-white/5 px-4 py-3 space-y-1">
+          <div style={{ padding: '12px 24px 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <MobileLink href="/" label="Home" onClick={() => setIsMobileMenuOpen(false)} />
-            <MobileLink href="/builders-hub" label="Builder's Hub" icon={<Hammer className="w-4 h-4" />} onClick={() => setIsMobileMenuOpen(false)} />
-            <MobileLink href="/shark-tank" label="Shark Tank" icon={<Fish className="w-4 h-4" />} onClick={() => setIsMobileMenuOpen(false)} />
-            <MobileLink href="/hall-of-fame" label="Hall of Fame" icon={<Trophy className="w-4 h-4" />} onClick={() => setIsMobileMenuOpen(false)} />
+            <MobileLink href="/builders-hub" label="Builder's Hub" icon={<Hammer style={{ width: 18, height: 18 }} />} onClick={() => setIsMobileMenuOpen(false)} />
+            <MobileLink href="/shark-tank" label="Shark Tank" icon={<Fish style={{ width: 18, height: 18 }} />} onClick={() => setIsMobileMenuOpen(false)} />
+            <MobileLink href="/hall-of-fame" label="Hall of Fame" icon={<Trophy style={{ width: 18, height: 18 }} />} onClick={() => setIsMobileMenuOpen(false)} />
             {user?.isAdmin && (
-              <MobileLink href="/admin" label="Admin" icon={<Shield className="w-4 h-4" />} onClick={() => setIsMobileMenuOpen(false)} />
+              <MobileLink href="/admin" label="Admin Panel" icon={<Shield style={{ width: 18, height: 18 }} />} onClick={() => setIsMobileMenuOpen(false)} />
+            )}
+
+            {session && (
+              <>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '8px 0' }} />
+                <button
+                  onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#ef4444',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                  }}
+                >
+                  <LogOut style={{ width: 18, height: 18 }} />
+                  Sign Out
+                </button>
+              </>
             )}
           </div>
         </div>
       </nav>
+
+      {/* Spacer */}
+      <div style={{ height: '64px' }} />
     </>
   );
 }
 
-function NavLink({ href, label, icon }: { href: string; label: string; icon?: React.ReactNode }) {
+function DesktopLink({ href, label, icon }: { href: string; label: string; icon?: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-all"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 14px',
+        borderRadius: '10px',
+        fontSize: '13px',
+        fontWeight: 500,
+        color: 'var(--text-secondary)',
+        textDecoration: 'none',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = 'var(--text-primary)';
+        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = 'var(--text-secondary)';
+        e.currentTarget.style.background = 'transparent';
+      }}
     >
       {icon}
       {label}
@@ -153,7 +362,25 @@ function MobileLink({ href, label, icon, onClick }: { href: string; label: strin
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-3 px-4 py-3 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '12px 16px',
+        borderRadius: '12px',
+        fontSize: '14px',
+        color: 'var(--text-secondary)',
+        textDecoration: 'none',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = 'var(--text-primary)';
+        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = 'var(--text-secondary)';
+        e.currentTarget.style.background = 'transparent';
+      }}
     >
       {icon}
       {label}

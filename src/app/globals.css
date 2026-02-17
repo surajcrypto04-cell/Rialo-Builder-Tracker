@@ -478,25 +478,18 @@ input:-webkit-autofill:focus {
 main {
   animation: fadeInUp 0.3s ease-out;
 }
-
 /* ==========================================
-   RESPONSIVE
+   RESPONSIVE HIDE/SHOW
    ========================================== */
 
-@media (max-width: 639px) {
-  html { font-size: 15px; }
-  body { overflow-x: hidden; }
-
-  .hide-mobile { display: none !important; }
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
-@media (min-width: 640px) {
-  .hide-desktop { display: none !important; }
-}
-
-/* Mobile safe area */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  footer {
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none !important;
   }
 }

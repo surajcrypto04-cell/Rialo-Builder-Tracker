@@ -4,16 +4,7 @@ import { useState } from 'react';
 import { Event } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { PROJECT_CATEGORIES, TECH_STACK_OPTIONS } from '@/lib/constants';
-import {
-  Plus,
-  Loader2,
-  Github,
-  Twitter,
-  Globe,
-  User,
-  CheckCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { Plus, Loader2, Github, Twitter, Globe, User, CheckCircle, AlertCircle, Search, Image, Code, Layers } from 'lucide-react';
 
 interface AddParticipantFormProps {
   events: Event[];
@@ -26,12 +17,12 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
   const [githubPreview, setGithubPreview] = useState<any>(null);
   const [githubError, setGithubError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [existingUser, setExistingUser] = useState<string | null>(null);
 
-  // Form fields
   const [eventId, setEventId] = useState('');
   const [discordId, setDiscordId] = useState('');
-  const [existingUser, setExistingUser] = useState<string | null>(null);
   const [discordUsername, setDiscordUsername] = useState('');
+  const [discordAvatarUrl, setDiscordAvatarUrl] = useState('');
   const [twitterHandle, setTwitterHandle] = useState('');
   const [githubUsername, setGithubUsername] = useState('');
   const [projectName, setProjectName] = useState('');
@@ -44,285 +35,258 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
   const [projectStatus, setProjectStatus] = useState('building');
   const [teamSize, setTeamSize] = useState('solo');
   const [screenshotUrl, setScreenshotUrl] = useState('');
-  const [discordAvatarUrl, setDiscordAvatarUrl] = useState('');
 
-  // Fetch GitHub preview
-  async function handleGithubLookup() {
-    if (!githubUsername.trim()) return;
-
-    setGithubLoading(true);
-    setGithubError('');
-    setGithubPreview(null);
-
-    try {
-      const res = await fetch(`/api/github/${githubUsername.trim()}`);
-
-      if (res.ok) {
-        const data = await res.json();
-        setGithubPreview(data);
-      } else {
-        setGithubError('GitHub user not found');
-      }
-    } catch {
-      setGithubError('Error fetching GitHub profile');
-    } finally {
-      setGithubLoading(false);
+  async function handleDiscordIdBlur() {
+    if (discordId.trim()) {
+      try {
+        const { data } = await supabase
+          .from('builder_profiles')
+          .select('discord_username, discord_avatar_url, twitter_handle, github_username')
+          .eq('discord_id', discordId.trim())
+          .single();
+        if (data) {
+          setExistingUser(data.discord_username);
+          setDiscordUsername(data.discord_username || '');
+          if (data.discord_avatar_url) setDiscordAvatarUrl(data.discord_avatar_url);
+          if (data.twitter_handle) setTwitterHandle(data.twitter_handle);
+          if (data.github_username) {
+            setGithubUsername(data.github_username);
+            handleGithubLookup(data.github_username);
+          }
+        } else {
+          setExistingUser(null);
+        }
+      } catch { setExistingUser(null); }
     }
   }
 
-  function handleTechStackToggle(tech: string) {
-    setTechStack((prev) =>
-      prev.includes(tech) ? prev.filter((t) => t !== tech) : [...prev, tech]
-    );
+  async function handleGithubLookup(username?: string) {
+    const name = username || githubUsername.trim();
+    if (!name) return;
+    setGithubLoading(true);
+    setGithubError('');
+    setGithubPreview(null);
+    try {
+      const res = await fetch(`/api/github/${name}`);
+      if (res.ok) setGithubPreview(await res.json());
+      else setGithubError('GitHub user not found');
+    } catch { setGithubError('Error fetching GitHub profile'); }
+    finally { setGithubLoading(false); }
+  }
+
+  function toggleTech(tech: string) {
+    setTechStack((prev) => prev.includes(tech) ? prev.filter((t) => t !== tech) : [...prev, tech]);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     if (!eventId || !discordId || !discordUsername || !projectName || !projectOneLiner) {
       alert('Please fill in all required fields');
       return;
     }
-
     setLoading(true);
-
     try {
       const res = await fetch('/api/admin/participants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          event_id: eventId,
-          discord_id: discordId.trim(),
-          discord_username: discordUsername.trim(),
-          discord_avatar_url: discordAvatarUrl.trim(),
-          twitter_handle: twitterHandle.trim(),
-          github_username: githubUsername.trim(),
-          project_name: projectName.trim(),
-          project_one_liner: projectOneLiner.trim(),
-          project_pitch: projectPitch.trim(),
-          project_link: projectLink.trim(),
-          project_github_link: projectGithubLink.trim(),
-          project_category: projectCategory,
-          tech_stack: techStack,
-          project_status: projectStatus,
-          team_size: teamSize,
-          project_screenshot_url: screenshotUrl.trim(),
-          // GitHub data from preview
+          event_id: eventId, discord_id: discordId.trim(), discord_username: discordUsername.trim(),
+          discord_avatar_url: discordAvatarUrl.trim(), twitter_handle: twitterHandle.trim(),
+          github_username: githubUsername.trim(), project_name: projectName.trim(),
+          project_one_liner: projectOneLiner.trim(), project_pitch: projectPitch.trim(),
+          project_link: projectLink.trim(), project_github_link: projectGithubLink.trim(),
+          project_category: projectCategory, tech_stack: techStack, project_status: projectStatus,
+          team_size: teamSize, project_screenshot_url: screenshotUrl.trim(),
           github_data: githubPreview || null,
         }),
       });
-
       if (res.ok) {
         setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-
-        // Reset form
-        setDiscordId('');
-        setDiscordUsername('');
-        setTwitterHandle('');
-        setGithubUsername('');
-        setProjectName('');
-        setProjectOneLiner('');
-        setProjectPitch('');
-        setProjectLink('');
-        setProjectGithubLink('');
-        setProjectCategory('');
-        setTechStack([]);
-        setProjectStatus('building');
-        setTeamSize('solo');
-        setScreenshotUrl('');
-        setDiscordAvatarUrl('');
-        setGithubPreview(null);
-
+        setTimeout(() => setSuccess(false), 4000);
+        setEventId(''); setDiscordId(''); setDiscordUsername(''); setDiscordAvatarUrl('');
+        setTwitterHandle(''); setGithubUsername(''); setProjectName(''); setProjectOneLiner('');
+        setProjectPitch(''); setProjectLink(''); setProjectGithubLink(''); setProjectCategory('');
+        setTechStack([]); setProjectStatus('building'); setTeamSize('solo'); setScreenshotUrl('');
+        setGithubPreview(null); setExistingUser(null);
         onSuccess();
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to add participant');
       }
-    } catch {
-      alert('Error adding participant');
-    } finally {
-      setLoading(false);
-    }
+    } catch { alert('Error adding participant'); }
+    finally { setLoading(false); }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="glass-card p-6 sm:p-8">
-      <h3 className="text-lg font-bold mb-6">Add New Participant</h3>
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '12px 16px', borderRadius: '12px',
+    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+    color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
+    transition: 'border-color 0.2s',
+  };
 
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: '12px', fontWeight: 500,
+    color: 'var(--text-secondary)', marginBottom: '8px',
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
       {/* Success Message */}
       {success && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm mb-6">
-          <CheckCircle className="w-4 h-4" />
-          Participant added successfully!
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 20px', borderRadius: '14px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', marginBottom: '24px' }}>
+          <CheckCircle style={{ width: 18, height: 18, color: '#22c55e', flexShrink: 0 }} />
+          <span style={{ fontSize: '13px', color: '#22c55e', fontWeight: 500 }}>Participant added successfully!</span>
         </div>
       )}
 
-      {/* Event Selection */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-          Select Event *
-        </label>
+      {/* SECTION 1: Select Event */}
+      <div className="glass-card" style={{ padding: '28px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+          <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,140,0,0.1)' }}>
+            <Layers style={{ width: 18, height: 18, color: 'var(--bh-accent)' }} />
+          </div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Select Event</h3>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Required</span>
+        </div>
+
         <select
           value={eventId}
           onChange={(e) => setEventId(e.target.value)}
           required
-          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors appearance-none cursor-pointer"
+          style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' as const }}
         >
-          <option value="" className="bg-[var(--bg-secondary)]">
-            Choose an event...
-          </option>
+          <option value="" style={{ background: 'var(--bg-secondary)' }}>Choose an event...</option>
           {events.map((event) => (
-            <option key={event.id} value={event.id} className="bg-[var(--bg-secondary)]">
+            <option key={event.id} value={event.id} style={{ background: 'var(--bg-secondary)' }}>
               {event.title} ({event.voting_status})
             </option>
           ))}
         </select>
+
+        {events.length === 0 && (
+          <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '8px' }}>
+            ⚠️ No events found. Create an event first in the &quot;Manage Events&quot; tab.
+          </p>
+        )}
       </div>
 
-      {/* Builder Info */}
-      <div className="mb-6">
-        <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-          <User className="w-4 h-4" />
-          Builder Information
-        </h4>
+      {/* SECTION 2: Builder Information */}
+      <div className="glass-card" style={{ padding: '28px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+          <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(0,200,255,0.1)' }}>
+            <User style={{ width: 18, height: 18, color: 'var(--st-accent)' }} />
+          </div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Builder Information</h3>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         <div>
-  <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-    Discord ID *
-  </label>
-  <input
-    type="text"
-    value={discordId}
-    onChange={(e) => {
-      setDiscordId(e.target.value);
-      setExistingUser(null);
-    }}
-    onBlur={async () => {
-      if (discordId.trim()) {
-        try {
-          const { data } = await supabase
-            .from('builder_profiles')
-            .select('discord_username')
-            .eq('discord_id', discordId.trim())
-            .single();
-          if (data) {
-            setExistingUser(data.discord_username);
-            setDiscordUsername(data.discord_username);
-          }
-        } catch {}
-      }
-    }}
-    placeholder="123456789012345678"
-    required
-    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-  />
-  {existingUser && (
-    <div style={{
-      marginTop: '8px',
-      padding: '8px 12px',
-      borderRadius: '8px',
-      background: 'rgba(0, 200, 255, 0.05)',
-      border: '1px solid rgba(0, 200, 255, 0.15)',
-      fontSize: '12px',
-      color: 'var(--st-accent)',
-    }}>
-      ✅ Existing builder found: <strong>{existingUser}</strong> — Adding new project to their profile
-    </div>
-  )}
-</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Discord ID */}
+          <div>
+            <label style={labelStyle}>Discord ID *</label>
+            <input
+              type="text" value={discordId}
+              onChange={(e) => { setDiscordId(e.target.value); setExistingUser(null); }}
+              onBlur={handleDiscordIdBlur}
+              placeholder="123456789012345678"
+              required style={inputStyle}
+            />
+          </div>
 
-          <div className="sm:col-span-2">
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Discord Avatar URL (paste from Discord profile)
+          {/* Discord Username */}
+          <div>
+            <label style={labelStyle}>Discord Username *</label>
+            <input
+              type="text" value={discordUsername}
+              onChange={(e) => setDiscordUsername(e.target.value)}
+              placeholder="username"
+              required style={inputStyle}
+            />
+          </div>
+
+          {/* Discord Avatar URL */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={labelStyle}>
+              <Image style={{ width: 12, height: 12, display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              Discord Avatar URL
             </label>
             <input
-              type="url"
-              value={discordAvatarUrl}
+              type="url" value={discordAvatarUrl}
               onChange={(e) => setDiscordAvatarUrl(e.target.value)}
               placeholder="https://cdn.discordapp.com/avatars/..."
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
+              style={inputStyle}
             />
-            <p className="text-[10px] text-[var(--text-secondary)] mt-1">
-              Right-click their Discord profile picture → Copy Image Address
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+              💡 Right-click their Discord profile picture → Copy Image Address
             </p>
           </div>
 
+          {/* Twitter */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Discord Username *
-            </label>
-            <input
-              type="text"
-              value={discordUsername}
-              onChange={(e) => setDiscordUsername(e.target.value)}
-              placeholder="username"
-              required
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              <Twitter className="w-3 h-3 inline mr-1" />
+            <label style={labelStyle}>
+              <Twitter style={{ width: 12, height: 12, display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
               Twitter Handle
             </label>
             <input
-              type="text"
-              value={twitterHandle}
+              type="text" value={twitterHandle}
               onChange={(e) => setTwitterHandle(e.target.value)}
-              placeholder="@handle (without @)"
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
+              placeholder="handle (without @)"
+              style={inputStyle}
             />
           </div>
 
+          {/* GitHub */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              <Github className="w-3 h-3 inline mr-1" />
+            <label style={labelStyle}>
+              <Github style={{ width: 12, height: 12, display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
               GitHub Username
             </label>
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '8px' }}>
               <input
-                type="text"
-                value={githubUsername}
+                type="text" value={githubUsername}
                 onChange={(e) => setGithubUsername(e.target.value)}
                 placeholder="username"
-                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
+                style={{ ...inputStyle, flex: 1 }}
               />
               <button
                 type="button"
-                onClick={handleGithubLookup}
+                onClick={() => handleGithubLookup()}
                 disabled={githubLoading || !githubUsername.trim()}
-                className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-all disabled:opacity-50 text-sm"
+                style={{
+                  padding: '0 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)',
+                  fontSize: '12px', fontWeight: 500, cursor: 'pointer', flexShrink: 0,
+                  opacity: githubLoading || !githubUsername.trim() ? 0.4 : 1,
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                }}
               >
-                {githubLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Lookup'
-                )}
+                {githubLoading ? <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} /> : <Search style={{ width: 14, height: 14 }} />}
+                Lookup
               </button>
             </div>
           </div>
         </div>
 
+        {/* Existing User Notice */}
+        {existingUser && (
+          <div style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(0,200,255,0.05)', border: '1px solid rgba(0,200,255,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle style={{ width: 16, height: 16, color: 'var(--st-accent)', flexShrink: 0 }} />
+            <span style={{ fontSize: '12px', color: 'var(--st-accent)' }}>
+              Existing builder found: <strong>{existingUser}</strong> — New project will be added to their profile
+            </span>
+          </div>
+        )}
+
         {/* GitHub Preview */}
         {githubPreview && (
-          <div className="mt-4 p-4 rounded-xl bg-green-500/5 border border-green-500/20">
-            <div className="flex items-center gap-3">
-              <img
-                src={githubPreview.user.avatar_url}
-                alt={githubPreview.user.login}
-                className="w-10 h-10 rounded-full"
-              />
+          <div style={{ marginTop: '16px', padding: '14px 16px', borderRadius: '12px', background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img src={githubPreview.user.avatar_url} alt="" style={{ width: 40, height: 40, borderRadius: '10px', objectFit: 'cover' }} />
               <div>
-                <div className="text-sm font-medium text-green-400">
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#22c55e', marginBottom: '2px' }}>
                   ✅ {githubPreview.user.name || githubPreview.user.login}
                 </div>
-                <div className="text-xs text-[var(--text-secondary)]">
-                  {githubPreview.allReposCount} repos • ⭐{' '}
-                  {githubPreview.totalStars} stars •{' '}
-                  {githubPreview.user.followers} followers
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                  {githubPreview.allReposCount} repos • ⭐ {githubPreview.totalStars} stars • {githubPreview.user.followers} followers
                 </div>
               </div>
             </div>
@@ -330,196 +294,152 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
         )}
 
         {githubError && (
-          <div className="mt-4 p-3 rounded-xl bg-red-500/5 border border-red-500/20 flex items-center gap-2 text-sm text-red-400">
-            <AlertCircle className="w-4 h-4" />
-            {githubError}
+          <div style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle style={{ width: 16, height: 16, color: '#ef4444', flexShrink: 0 }} />
+            <span style={{ fontSize: '12px', color: '#ef4444' }}>{githubError}</span>
           </div>
         )}
       </div>
 
-      {/* Project Info */}
-      <div className="mb-6">
-        <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-          <Globe className="w-4 h-4" />
-          Project Information
-        </h4>
+      {/* SECTION 3: Project Information */}
+      <div className="glass-card" style={{ padding: '28px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+          <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,215,0,0.1)' }}>
+            <Globe style={{ width: 18, height: 18, color: 'var(--gold)' }} />
+          </div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Project Information</h3>
+        </div>
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Project Name */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Project Name *
-            </label>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="My Awesome dApp"
-              required
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
+            <label style={labelStyle}>Project Name *</label>
+            <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="My Awesome dApp" required style={inputStyle} />
           </div>
 
+          {/* One-Liner */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              One-Liner * ({projectOneLiner.length}/140)
-            </label>
-            <input
-              type="text"
-              value={projectOneLiner}
-              onChange={(e) => setProjectOneLiner(e.target.value.slice(0, 140))}
-              placeholder="A brief description in one line..."
-              required
-              maxLength={140}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
+            <label style={labelStyle}>One-Liner * <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({projectOneLiner.length}/140)</span></label>
+            <input type="text" value={projectOneLiner} onChange={(e) => setProjectOneLiner(e.target.value.slice(0, 140))} placeholder="A brief description in one line..." required maxLength={140} style={inputStyle} />
           </div>
 
+          {/* Pitch */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Full Pitch ({projectPitch.length}/500)
-            </label>
-            <textarea
-              value={projectPitch}
-              onChange={(e) => setProjectPitch(e.target.value.slice(0, 500))}
-              rows={3}
-              placeholder="What problem does this solve? Why should people care?"
-              maxLength={500}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors resize-none"
-            />
+            <label style={labelStyle}>Full Pitch <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({projectPitch.length}/500)</span></label>
+            <textarea value={projectPitch} onChange={(e) => setProjectPitch(e.target.value.slice(0, 500))} rows={3} placeholder="What problem does this solve? Why should people care?" maxLength={500}
+              style={{ ...inputStyle, resize: 'none' as const, lineHeight: 1.6 }} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Links */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-                Project Link
-              </label>
-              <input
-                type="url"
-                value={projectLink}
-                onChange={(e) => setProjectLink(e.target.value)}
-                placeholder="https://myproject.com"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-              />
+              <label style={labelStyle}>Project Link</label>
+              <input type="url" value={projectLink} onChange={(e) => setProjectLink(e.target.value)} placeholder="https://myproject.com" style={inputStyle} />
             </div>
-
             <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-                Project GitHub Repo
-              </label>
-              <input
-                type="url"
-                value={projectGithubLink}
-                onChange={(e) => setProjectGithubLink(e.target.value)}
-                placeholder="https://github.com/user/repo"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-              />
+              <label style={labelStyle}>Project GitHub Repo</label>
+              <input type="url" value={projectGithubLink} onChange={(e) => setProjectGithubLink(e.target.value)} placeholder="https://github.com/user/repo" style={inputStyle} />
             </div>
           </div>
 
+          {/* Screenshot */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Screenshot URL (paste image URL)
+            <label style={labelStyle}>
+              <Image style={{ width: 12, height: 12, display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              Screenshot URL
             </label>
-            <input
-              type="url"
-              value={screenshotUrl}
-              onChange={(e) => setScreenshotUrl(e.target.value)}
-              placeholder="https://i.imgur.com/example.png"
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/40 text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
+            <input type="url" value={screenshotUrl} onChange={(e) => setScreenshotUrl(e.target.value)} placeholder="https://i.imgur.com/example.png" style={inputStyle} />
+
+            {/* Screenshot Preview */}
+            {screenshotUrl && (
+              <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', maxHeight: '200px' }}>
+                <img src={screenshotUrl} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              </div>
+            )}
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-              Category
-            </label>
-            <select
-              value={projectCategory}
-              onChange={(e) => setProjectCategory(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors appearance-none cursor-pointer"
-            >
-              <option value="" className="bg-[var(--bg-secondary)]">
-                Select category...
-              </option>
+            <label style={labelStyle}>Category</label>
+            <select value={projectCategory} onChange={(e) => setProjectCategory(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' as const }}>
+              <option value="" style={{ background: 'var(--bg-secondary)' }}>Select category...</option>
               {PROJECT_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} className="bg-[var(--bg-secondary)]">
-                  {cat}
-                </option>
+                <option key={cat} value={cat} style={{ background: 'var(--bg-secondary)' }}>{cat}</option>
               ))}
             </select>
-          </div>
-
-          {/* Tech Stack */}
-          <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-2">
-              Tech Stack (select all that apply)
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {TECH_STACK_OPTIONS.map((tech) => (
-                <button
-                  key={tech}
-                  type="button"
-                  onClick={() => handleTechStackToggle(tech)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    techStack.includes(tech)
-                      ? 'bg-[var(--bh-accent)]/10 text-[var(--bh-accent)] border border-[var(--bh-accent)]/30'
-                      : 'bg-white/5 text-[var(--text-secondary)] border border-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  {tech}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Status + Team Size */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-                Project Status
-              </label>
-              <select
-                value={projectStatus}
-                onChange={(e) => setProjectStatus(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors appearance-none cursor-pointer"
-              >
-                <option value="idea" className="bg-[var(--bg-secondary)]">💡 Idea</option>
-                <option value="building" className="bg-[var(--bg-secondary)]">🔨 Building</option>
-                <option value="live" className="bg-[var(--bg-secondary)]">🚀 Live</option>
-                <option value="launched" className="bg-[var(--bg-secondary)]">🏆 Launched</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1.5">
-                Team Size
-              </label>
-              <select
-                value={teamSize}
-                onChange={(e) => setTeamSize(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors appearance-none cursor-pointer"
-              >
-                <option value="solo" className="bg-[var(--bg-secondary)]">🧑 Solo</option>
-                <option value="duo" className="bg-[var(--bg-secondary)]">👥 Duo</option>
-                <option value="team" className="bg-[var(--bg-secondary)]">👥👥 Team</option>
-              </select>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Submit */}
+      {/* SECTION 4: Tech Stack & Details */}
+      <div className="glass-card" style={{ padding: '28px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+          <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(167,139,250,0.1)' }}>
+            <Code style={{ width: 18, height: 18, color: '#a78bfa' }} />
+          </div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Tech Stack & Details</h3>
+        </div>
+
+        {/* Tech Stack */}
+        <div style={{ marginBottom: '24px' }}>
+          <label style={labelStyle}>Tech Stack <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({techStack.length} selected)</span></label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {TECH_STACK_OPTIONS.map((tech) => (
+              <button
+                key={tech} type="button" onClick={() => toggleTech(tech)}
+                style={{
+                  padding: '7px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 500,
+                  cursor: 'pointer', transition: 'all 0.2s', border: 'none',
+                  background: techStack.includes(tech) ? 'rgba(255,140,0,0.1)' : 'rgba(255,255,255,0.05)',
+                  color: techStack.includes(tech) ? 'var(--bh-accent)' : 'var(--text-secondary)',
+                  outline: techStack.includes(tech) ? '1px solid rgba(255,140,0,0.25)' : '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                {techStack.includes(tech) && '✓ '}{tech}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Status + Team */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={labelStyle}>Project Status</label>
+            <select value={projectStatus} onChange={(e) => setProjectStatus(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' as const }}>
+              <option value="idea" style={{ background: 'var(--bg-secondary)' }}>💡 Idea</option>
+              <option value="building" style={{ background: 'var(--bg-secondary)' }}>🔨 Building</option>
+              <option value="live" style={{ background: 'var(--bg-secondary)' }}>🚀 Live</option>
+              <option value="launched" style={{ background: 'var(--bg-secondary)' }}>🏆 Launched</option>
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Team Size</label>
+            <select value={teamSize} onChange={(e) => setTeamSize(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' as const }}>
+              <option value="solo" style={{ background: 'var(--bg-secondary)' }}>🧑 Solo</option>
+              <option value="duo" style={{ background: 'var(--bg-secondary)' }}>👥 Duo</option>
+              <option value="team" style={{ background: 'var(--bg-secondary)' }}>👥👥 Team</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* SUBMIT BUTTON */}
       <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--bh-accent)] to-[var(--bh-accent-light)] text-black font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-50"
+        type="submit" disabled={loading}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: '10px', padding: '16px', borderRadius: '16px', border: 'none',
+          background: 'linear-gradient(135deg, var(--bh-accent), var(--bh-accent-light))',
+          color: 'black', fontSize: '15px', fontWeight: 700, cursor: 'pointer',
+          opacity: loading ? 0.6 : 1, transition: 'all 0.3s',
+          boxShadow: '0 8px 24px rgba(255,140,0,0.2)',
+        }}
       >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Plus className="w-4 h-4" />
-        )}
+        {loading ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : <Plus style={{ width: 18, height: 18 }} />}
         Add Participant
       </button>
     </form>

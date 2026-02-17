@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchParticipantsWithProfiles } from '@/lib/helpers';
 import { Participant, Event } from '@/types';
 import BuilderCard from '@/components/BuilderCard';
 import { Hammer, Filter } from 'lucide-react';
@@ -21,8 +22,8 @@ export default function BuildersHubPage() {
         if (eventsData && eventsData.length > 0) {
           setEvents(eventsData);
           const eventId = selectedEvent === 'latest' ? eventsData[0].id : selectedEvent;
-          const { data: parts } = await supabase.from('participants').select('*').eq('event_id', eventId).order('vote_count', { ascending: false });
-          if (parts) setParticipants(parts);
+          const parts = await fetchParticipantsWithProfiles(eventId);
+          setParticipants(parts);
         }
       } catch (error) { console.error('Error:', error); }
       finally { setLoading(false); }

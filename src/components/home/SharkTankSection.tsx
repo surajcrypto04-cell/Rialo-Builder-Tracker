@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import { supabase } from '@/lib/supabase';
+import { fetchParticipantsWithProfiles } from '@/lib/helpers';
 import { Participant, Event } from '@/types';
 import BuilderCard from '@/components/BuilderCard';
 import { Fish, Clock, ArrowRight } from 'lucide-react';
@@ -26,12 +27,8 @@ export default function SharkTankSection() {
 
         if (events && events.length > 0) {
           setCurrentEvent(events[0]);
-          const { data: parts } = await supabase
-            .from('participants')
-            .select('*')
-            .eq('event_id', events[0].id)
-            .order('vote_count', { ascending: false });
-          if (parts) setParticipants(parts);
+          const parts = await fetchParticipantsWithProfiles(events[0].id);
+            setParticipants(parts);
         }
       } catch (error) {
         console.error('Error:', error);

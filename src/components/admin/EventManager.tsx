@@ -2,214 +2,98 @@
 
 import { useState } from 'react';
 import { Event } from '@/types';
-import {
-  Plus,
-  Calendar,
-  Loader2,
-  Hammer,
-  Fish,
-  PlayCircle,
-  StopCircle,
-  Trash2,
-} from 'lucide-react';
+import { Plus, Calendar, Loader2, Hammer, Fish, PlayCircle, StopCircle, Trash2 } from 'lucide-react';
 
-interface EventManagerProps {
-  events: Event[];
-  onRefresh: () => void;
-}
+interface EventManagerProps { events: Event[]; onRefresh: () => void; }
 
 export default function EventManager({ events, onRefresh }: EventManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Form state
   const [eventType, setEventType] = useState<'builders_hub' | 'shark_tank'>('builders_hub');
   const [weekNumber, setWeekNumber] = useState(1);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  async function handleCreateEvent(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-
     try {
       const res = await fetch('/api/admin/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event_type: eventType,
-          week_number: weekNumber,
-          title: title || `${eventType === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'} Week ${weekNumber}`,
-          description,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_type: eventType, week_number: weekNumber, title: title || `${eventType === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'} Week ${weekNumber}`, description }),
       });
-
-      if (res.ok) {
-        setShowForm(false);
-        setTitle('');
-        setDescription('');
-        onRefresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to create event');
-      }
-    } catch {
-      alert('Error creating event');
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) { setShowForm(false); setTitle(''); setDescription(''); onRefresh(); }
+      else { const d = await res.json(); alert(d.error || 'Failed'); }
+    } catch { alert('Error'); }
+    finally { setLoading(false); }
   }
 
-  async function handleUpdateStatus(eventId: string, status: string) {
-    try {
-      const res = await fetch('/api/admin/events', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: eventId, voting_status: status }),
-      });
-
-      if (res.ok) {
-        onRefresh();
-      } else {
-        alert('Failed to update event');
-      }
-    } catch {
-      alert('Error updating event');
-    }
+  async function handleStatus(id: string, status: string) {
+    try { const res = await fetch('/api/admin/events', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, voting_status: status }) }); if (res.ok) onRefresh(); }
+    catch { alert('Error'); }
   }
 
-  async function handleDeleteEvent(eventId: string) {
-    if (!confirm('Delete this event? All participants and votes will be removed.')) return;
-
-    try {
-      const res = await fetch('/api/admin/events', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: eventId }),
-      });
-
-      if (res.ok) {
-        onRefresh();
-      } else {
-        alert('Failed to delete event');
-      }
-    } catch {
-      alert('Error deleting event');
-    }
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this event and all its participants?')) return;
+    try { const res = await fetch('/api/admin/events', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); if (res.ok) onRefresh(); }
+    catch { alert('Error'); }
   }
 
   return (
     <div>
-      {/* Create Event Button */}
+      {/* Create Button */}
       <button
         onClick={() => setShowForm(!showForm)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bh-accent)]/10 text-[var(--bh-accent)] border border-[var(--bh-accent)]/20 hover:bg-[var(--bh-accent)]/20 transition-all mb-6"
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(255,140,0,0.2)', background: 'rgba(255,140,0,0.1)', color: 'var(--bh-accent)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', marginBottom: '24px' }}
       >
-        <Plus className="w-4 h-4" />
-        Create New Event
+        <Plus style={{ width: 16, height: 16 }} /> Create New Event
       </button>
 
-      {/* Create Event Form */}
+      {/* Create Form */}
       {showForm && (
-        <form onSubmit={handleCreateEvent} className="glass-card p-6 mb-8">
-          <h3 className="text-lg font-bold mb-4">Create New Event</h3>
+        <form onSubmit={handleCreate} className="glass-card" style={{ padding: '28px', marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>Create New Event</h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {/* Event Type */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-2">
-                Event Type
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEventType('builders_hub')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    eventType === 'builders_hub'
-                      ? 'bg-[var(--bh-accent)]/10 text-[var(--bh-accent)] border border-[var(--bh-accent)]/30'
-                      : 'bg-white/5 text-[var(--text-secondary)] border border-white/5'
-                  }`}
-                >
-                  <Hammer className="w-4 h-4" />
-                  Builder&apos;s Hub
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Event Type</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => setEventType('builders_hub')}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '12px', border: eventType === 'builders_hub' ? '1px solid rgba(255,140,0,0.3)' : '1px solid rgba(255,255,255,0.06)', background: eventType === 'builders_hub' ? 'rgba(255,140,0,0.1)' : 'rgba(255,255,255,0.03)', color: eventType === 'builders_hub' ? 'var(--bh-accent)' : 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                  <Hammer style={{ width: 16, height: 16 }} /> Builder&apos;s Hub
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setEventType('shark_tank')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    eventType === 'shark_tank'
-                      ? 'bg-[var(--st-accent)]/10 text-[var(--st-accent)] border border-[var(--st-accent)]/30'
-                      : 'bg-white/5 text-[var(--text-secondary)] border border-white/5'
-                  }`}
-                >
-                  <Fish className="w-4 h-4" />
-                  Shark Tank
+                <button type="button" onClick={() => setEventType('shark_tank')}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '12px', border: eventType === 'shark_tank' ? '1px solid rgba(0,200,255,0.3)' : '1px solid rgba(255,255,255,0.06)', background: eventType === 'shark_tank' ? 'rgba(0,200,255,0.1)' : 'rgba(255,255,255,0.03)', color: eventType === 'shark_tank' ? 'var(--st-accent)' : 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                  <Fish style={{ width: 16, height: 16 }} /> Shark Tank
                 </button>
               </div>
             </div>
-
-            {/* Week Number */}
             <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-2">
-                Week Number
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={weekNumber}
-                onChange={(e) => setWeekNumber(parseInt(e.target.value) || 1)}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-              />
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Week Number</label>
+              <input type="number" min={1} value={weekNumber} onChange={(e) => setWeekNumber(parseInt(e.target.value) || 1)}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
             </div>
           </div>
 
-          {/* Title */}
-          <div className="mb-4">
-            <label className="block text-sm text-[var(--text-secondary)] mb-2">
-              Title (optional — auto-generated if empty)
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={`${eventType === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'} Week ${weekNumber}`}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors"
-            />
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Title (optional)</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`${eventType === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'} Week ${weekNumber}`}
+              style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
           </div>
 
-          {/* Description */}
-          <div className="mb-6">
-            <label className="block text-sm text-[var(--text-secondary)] mb-2">
-              Description (optional)
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              placeholder="Brief description of this week's event..."
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--bh-accent)]/50 transition-colors resize-none"
-            />
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Description (optional)</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Brief description..."
+              style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', resize: 'none' }} />
           </div>
 
-          {/* Submit */}
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--bh-accent)] text-black font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              Create Event
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="submit" disabled={loading}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 24px', borderRadius: '12px', border: 'none', background: 'var(--bh-accent)', color: 'black', fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.5 : 1 }}>
+              {loading ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} /> : <Plus style={{ width: 16, height: 16 }} />} Create Event
             </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-6 py-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] text-sm hover:bg-white/10 transition-all"
-            >
+            <button type="button" onClick={() => setShowForm(false)}
+              style={{ padding: '10px 24px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
@@ -218,93 +102,55 @@ export default function EventManager({ events, onRefresh }: EventManagerProps) {
 
       {/* Events List */}
       {events.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <Calendar className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-          <h3 className="text-lg font-bold mb-2">No Events Yet</h3>
-          <p className="text-[var(--text-secondary)]">
-            Create your first event to get started.
-          </p>
+        <div className="glass-card" style={{ padding: '60px 24px', textAlign: 'center' }}>
+          <Calendar style={{ width: 48, height: 48, color: 'var(--text-secondary)', margin: '0 auto 20px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>No Events Yet</h3>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Create your first event to get started.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {events.map((event) => (
-            <div key={event.id} className="glass-card p-4 sm:p-5">
-              <div className="flex items-center gap-4">
-                {/* Type Icon */}
-                <div
-                  className={`p-3 rounded-xl ${
-                    event.event_type === 'builders_hub'
-                      ? 'bg-[var(--bh-accent)]/10'
-                      : 'bg-[var(--st-accent)]/10'
-                  }`}
-                >
-                  {event.event_type === 'builders_hub' ? (
-                    <Hammer
-                      className="w-5 h-5"
-                      style={{ color: 'var(--bh-accent)' }}
-                    />
-                  ) : (
-                    <Fish
-                      className="w-5 h-5"
-                      style={{ color: 'var(--st-accent)' }}
-                    />
-                  )}
+            <div key={event.id} className="glass-card" style={{ padding: '16px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                {/* Icon */}
+                <div style={{ padding: '12px', borderRadius: '12px', background: event.event_type === 'builders_hub' ? 'rgba(255,140,0,0.1)' : 'rgba(0,200,255,0.1)', flexShrink: 0 }}>
+                  {event.event_type === 'builders_hub'
+                    ? <Hammer style={{ width: 20, height: 20, color: 'var(--bh-accent)' }} />
+                    : <Fish style={{ width: 20, height: 20, color: 'var(--st-accent)' }} />}
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base truncate">
-                    {event.title}
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    Week {event.week_number} •{' '}
-                    {event.event_type === 'builders_hub'
-                      ? "Builder's Hub"
-                      : 'Shark Tank'}
-                  </p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.title}</h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Week {event.week_number} • {event.event_type === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'}</p>
                 </div>
 
-                {/* Status Badge */}
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    event.voting_status === 'open'
-                      ? 'bg-green-500/10 text-green-400'
-                      : event.voting_status === 'upcoming'
-                      ? 'bg-yellow-500/10 text-yellow-400'
-                      : 'bg-red-500/10 text-red-400'
-                  }`}
-                >
+                {/* Status */}
+                <span style={{
+                  padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: 600, flexShrink: 0,
+                  background: event.voting_status === 'open' ? 'rgba(34,197,94,0.1)' : event.voting_status === 'upcoming' ? 'rgba(234,179,8,0.1)' : 'rgba(239,68,68,0.1)',
+                  color: event.voting_status === 'open' ? '#22c55e' : event.voting_status === 'upcoming' ? '#eab308' : '#ef4444',
+                }}>
                   {event.voting_status}
-                </div>
+                </span>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1 sm:gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   {event.voting_status === 'upcoming' && (
-                    <button
-                      onClick={() => handleUpdateStatus(event.id, 'open')}
-                      className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
-                      title="Open Voting"
-                    >
-                      <PlayCircle className="w-4 h-4" />
+                    <button onClick={() => handleStatus(event.id, 'open')}
+                      style={{ padding: '8px', borderRadius: '10px', border: 'none', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer' }} title="Open Voting">
+                      <PlayCircle style={{ width: 16, height: 16 }} />
                     </button>
                   )}
-
                   {event.voting_status === 'open' && (
-                    <button
-                      onClick={() => handleUpdateStatus(event.id, 'closed')}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                      title="Close Voting"
-                    >
-                      <StopCircle className="w-4 h-4" />
+                    <button onClick={() => handleStatus(event.id, 'closed')}
+                      style={{ padding: '8px', borderRadius: '10px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer' }} title="Close Voting">
+                      <StopCircle style={{ width: 16, height: 16 }} />
                     </button>
                   )}
-
-                  <button
-                    onClick={() => handleDeleteEvent(event.id)}
-                    className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Delete Event"
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => handleDelete(event.id)}
+                    style={{ padding: '8px', borderRadius: '10px', border: 'none', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', cursor: 'pointer' }} title="Delete">
+                    <Trash2 style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
               </div>
