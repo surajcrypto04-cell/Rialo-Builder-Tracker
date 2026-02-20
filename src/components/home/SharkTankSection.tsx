@@ -28,7 +28,7 @@ export default function SharkTankSection() {
         if (events && events.length > 0) {
           setCurrentEvent(events[0]);
           const parts = await fetchParticipantsWithProfiles(events[0].id);
-            setParticipants(parts);
+          setParticipants(parts);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -128,9 +128,11 @@ export default function SharkTankSection() {
                 margin: '0 auto',
               }}
             >
-              {participants.map((participant) => (
-                <BuilderCard key={participant.id} participant={participant} variant="shark_tank" maxVotes={maxVotes} />
-              ))}
+              {[...participants]
+                .sort((a, b) => b.vote_count - a.vote_count)
+                .map((participant, idx) => (
+                  <BuilderCard key={participant.id} participant={participant} variant="shark_tank" maxVotes={maxVotes} rank={idx + 1} />
+                ))}
             </div>
 
             <div style={{ textAlign: 'center', marginTop: '48px' }}>

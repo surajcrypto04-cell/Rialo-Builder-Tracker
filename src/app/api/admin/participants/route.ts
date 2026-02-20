@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAdminToken } from '@/lib/auth';
 
-async function checkAdmin() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as any;
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',');
-  return user && adminIds.includes(user.discordId);
+async function checkAdmin(request: NextRequest) {
+  return await verifyAdminToken(request);
+}
+
+export async function GET(request: NextRequest) {
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data, error } = await supabaseAdmin
+    .from('participants')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ data });
 }
 
 /* =======================================================
@@ -15,8 +29,8 @@ async function checkAdmin() {
 ======================================================= */
 
 export async function POST(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
@@ -36,6 +50,7 @@ export async function POST(request: NextRequest) {
     project_link: body.project_link || null,
     project_github_link: body.project_github_link || null,
     project_screenshot_url: body.project_screenshot_url || null,
+    gallery_urls: body.gallery_urls || [],
     project_category: body.project_category || null,
     tech_stack: body.tech_stack || [],
     project_status: body.project_status || 'building',
@@ -67,20 +82,24 @@ export async function POST(request: NextRequest) {
 }
 
 /* =======================================================
-   PATCH – MARK WINNER
+   PATCH – UPDATE PARTICIPANT (winner, vote_count, etc.)
 ======================================================= */
 
 export async function PATCH(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
   const body = await request.json();
 
+  const updateData: any = {};
+  if (body.is_winner !== undefined) updateData.is_winner = body.is_winner;
+  if (body.vote_count !== undefined) updateData.vote_count = body.vote_count;
+
   const { error } = await supabaseAdmin
     .from('participants')
-    .update({ is_winner: body.is_winner })
+    .update(updateData)
     .eq('id', body.id);
 
   if (error) {
@@ -95,8 +114,8 @@ export async function PATCH(request: NextRequest) {
 ======================================================= */
 
 export async function DELETE(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
@@ -119,14 +138,13 @@ export async function DELETE(request: NextRequest) {
 ======================================================= */
 
 export async function PUT(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
   const body = await request.json();
 
-  // Sync avatar across all participations
   if (body.action === 'sync_avatar') {
     const { data: profile } = await supabaseAdmin
       .from('builder_profiles')
@@ -139,36 +157,21 @@ export async function PUT(request: NextRequest) {
         .from('participants')
         .update({ discord_avatar_url: profile.discord_avatar_url })
         .eq('discord_id', body.discord_id);
-
       return NextResponse.json({ success: true });
     }
-
     return NextResponse.json({ error: 'No profile avatar found' }, { status: 400 });
   }
 
-  // Update specific participant
   if (body.id) {
     const updateData: any = {};
-
-    if (body.discord_avatar_url !== undefined)
-      updateData.discord_avatar_url = body.discord_avatar_url;
-
-    if (body.discord_username !== undefined)
-      updateData.discord_username = body.discord_username;
-
-    if (body.project_name !== undefined)
-      updateData.project_name = body.project_name;
-
-    if (body.project_one_liner !== undefined)
-      updateData.project_one_liner = body.project_one_liner;
+    if (body.discord_avatar_url !== undefined) updateData.discord_avatar_url = body.discord_avatar_url;
+    if (body.discord_username !== undefined) updateData.discord_username = body.discord_username;
+    if (body.project_name !== undefined) updateData.project_name = body.project_name;
+    if (body.project_one_liner !== undefined) updateData.project_one_liner = body.project_one_liner;
 
     if (Object.keys(updateData).length > 0) {
-      await supabaseAdmin
-        .from('participants')
-        .update(updateData)
-        .eq('id', body.id);
+      await supabaseAdmin.from('participants').update(updateData).eq('id', body.id);
     }
-
     return NextResponse.json({ success: true });
   }
 

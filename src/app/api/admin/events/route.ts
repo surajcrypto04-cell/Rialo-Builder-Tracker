@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAdminToken } from '@/lib/auth';
 
-async function checkAdmin() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as any;
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',');
-  return user && adminIds.includes(user.discordId);
+async function checkAdmin(request: NextRequest) {
+  return await verifyAdminToken(request);
+}
+
+export async function GET(request: NextRequest) {
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data, error } = await supabaseAdmin
+    .from('events')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ data });
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
@@ -34,8 +48,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
@@ -58,8 +72,8 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!(await checkAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  if (!await checkAdmin(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabaseAdmin = getSupabaseAdmin();

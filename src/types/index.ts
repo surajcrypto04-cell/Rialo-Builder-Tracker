@@ -37,6 +37,7 @@ export interface Participant {
   project_link: string | null;
   project_github_link: string | null;
   project_screenshot_url: string | null;
+  gallery_urls: string[]; // URLs for additional screenshots
   project_category: ProjectCategory | null;
   tech_stack: string[];
   project_status: ProjectStatus;
@@ -117,23 +118,6 @@ export interface LanguageStat {
   color: string;
 }
 
-// Discord Session Types
-export interface DiscordSession {
-  user: {
-    id: string;
-    name: string;
-    email?: string;
-    image: string;
-    discordId: string;
-    username: string;
-    isRialoMember: boolean;
-    isClubMember: boolean;
-    voteWeight: 1 | 2;
-    isAdmin: boolean;
-  };
-  accessToken: string;
-}
-
 // Enums as types
 export type ProjectCategory =
   | 'DeFi'
@@ -170,4 +154,6 @@ export interface AddParticipantForm {
   project_status: ProjectStatus;
   team_size: TeamSize;
   screenshot: File | null;
+  gallery_files: File[]; // For multiple file uploads
+  gallery_urls_text: string; // For manual URL entry (comma separated)
 }

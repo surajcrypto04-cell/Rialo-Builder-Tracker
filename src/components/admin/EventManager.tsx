@@ -16,10 +16,17 @@ export default function EventManager({ events, onRefresh }: EventManagerProps) {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    const pin = sessionStorage.getItem('admin_pin');
+    if (!pin) { alert('Session expired'); return; }
+
     setLoading(true);
     try {
       const res = await fetch('/api/admin/events', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': pin,
+        },
         body: JSON.stringify({ event_type: eventType, week_number: weekNumber, title: title || `${eventType === 'builders_hub' ? "Builder's Hub" : 'Shark Tank'} Week ${weekNumber}`, description }),
       });
       if (res.ok) { setShowForm(false); setTitle(''); setDescription(''); onRefresh(); }
@@ -29,14 +36,36 @@ export default function EventManager({ events, onRefresh }: EventManagerProps) {
   }
 
   async function handleStatus(id: string, status: string) {
-    try { const res = await fetch('/api/admin/events', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, voting_status: status }) }); if (res.ok) onRefresh(); }
-    catch { alert('Error'); }
+    const pin = sessionStorage.getItem('admin_pin');
+    if (!pin) return;
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': pin,
+        },
+        body: JSON.stringify({ id, voting_status: status })
+      });
+      if (res.ok) onRefresh();
+    } catch { alert('Error'); }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this event and all its participants?')) return;
-    try { const res = await fetch('/api/admin/events', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); if (res.ok) onRefresh(); }
-    catch { alert('Error'); }
+    const pin = sessionStorage.getItem('admin_pin');
+    if (!pin) return;
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': pin,
+        },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) onRefresh();
+    } catch { alert('Error'); }
   }
 
   return (

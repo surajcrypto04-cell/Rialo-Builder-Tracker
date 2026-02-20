@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import SessionProvider from '@/components/SessionProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
+import AnnouncementBanner from '@/components/AnnouncementBanner';
+import HypeTicker from '@/components/HypeTicker';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -24,13 +24,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)]">
-        <SessionProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-1 pt-16">{children}</main>
-            <Footer />
+        <div className="flex flex-col min-h-screen">
+          <AnnouncementBanner />
+          <Navbar />
+          <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, zIndex: 40 }}>
+            <HypeTicker />
           </div>
-        </SessionProvider>
+          <main className="flex-1 pt-[100px]">{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

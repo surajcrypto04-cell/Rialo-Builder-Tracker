@@ -35,6 +35,7 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
   const [projectStatus, setProjectStatus] = useState('building');
   const [teamSize, setTeamSize] = useState('solo');
   const [screenshotUrl, setScreenshotUrl] = useState('');
+  const [galleryUrlsText, setGalleryUrlsText] = useState('');
 
   async function handleDiscordIdBlur() {
     if (discordId.trim()) {
@@ -86,35 +87,68 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
     }
     setLoading(true);
     try {
+      const pin = sessionStorage.getItem('admin_pin');
+
+      const galleryUrls = galleryUrlsText
+        ? galleryUrlsText.split(',').map(u => u.trim()).filter(u => u.length > 0)
+        : [];
+
       const res = await fetch('/api/admin/participants', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': pin || '',
+        },
         body: JSON.stringify({
-          event_id: eventId, discord_id: discordId.trim(), discord_username: discordUsername.trim(),
-          discord_avatar_url: discordAvatarUrl.trim(), twitter_handle: twitterHandle.trim(),
-          github_username: githubUsername.trim(), project_name: projectName.trim(),
-          project_one_liner: projectOneLiner.trim(), project_pitch: projectPitch.trim(),
-          project_link: projectLink.trim(), project_github_link: projectGithubLink.trim(),
-          project_category: projectCategory, tech_stack: techStack, project_status: projectStatus,
-          team_size: teamSize, project_screenshot_url: screenshotUrl.trim(),
-          github_data: githubPreview || null,
+          event_id: eventId,
+          discord_id: discordId,
+          discord_username: discordUsername,
+          discord_avatar_url: discordAvatarUrl,
+          twitter_handle: twitterHandle,
+          github_username: githubUsername,
+          github_avatar_url: githubPreview?.user.avatar_url,
+          github_bio: githubPreview?.user.bio,
+          github_public_repos: githubPreview?.user.public_repos,
+          github_followers: githubPreview?.user.followers,
+          github_total_stars: githubPreview?.totalStars,
+          github_top_languages: githubPreview?.languages,
+          github_repos_data: githubPreview?.repos,
+          github_created_at: githubPreview?.user.created_at,
+          project_name: projectName,
+          project_one_liner: projectOneLiner,
+          project_pitch: projectPitch,
+          project_link: projectLink,
+          project_github_link: projectGithubLink,
+          project_category: projectCategory,
+          tech_stack: techStack,
+          project_status: projectStatus,
+          team_size: teamSize,
+          project_screenshot_url: screenshotUrl,
+          gallery_urls: galleryUrls,
         }),
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 4000);
+        // Reset form
         setEventId(''); setDiscordId(''); setDiscordUsername(''); setDiscordAvatarUrl('');
         setTwitterHandle(''); setGithubUsername(''); setProjectName(''); setProjectOneLiner('');
         setProjectPitch(''); setProjectLink(''); setProjectGithubLink(''); setProjectCategory('');
         setTechStack([]); setProjectStatus('building'); setTeamSize('solo'); setScreenshotUrl('');
+        setGalleryUrlsText('');
         setGithubPreview(null); setExistingUser(null);
         onSuccess();
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to add participant');
       }
-    } catch { alert('Error adding participant'); }
-    finally { setLoading(false); }
+    } catch (err) {
+      console.error(err);
+      alert('Error adding participant');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputStyle: React.CSSProperties = {
@@ -357,6 +391,21 @@ export default function AddParticipantForm({ events, onSuccess }: AddParticipant
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
             )}
+          </div>
+
+          {/* Gallery URLs */}
+          <div>
+            <label style={labelStyle}>
+              <Image style={{ width: 12, height: 12, display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              Gallery URLs <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(comma separated)</span>
+            </label>
+            <textarea
+              value={galleryUrlsText}
+              onChange={(e) => setGalleryUrlsText(e.target.value)}
+              placeholder="https://img1.com, https://img2.com"
+              rows={2}
+              style={{ ...inputStyle, resize: 'none' as const, lineHeight: 1.6 }}
+            />
           </div>
 
           {/* Category */}

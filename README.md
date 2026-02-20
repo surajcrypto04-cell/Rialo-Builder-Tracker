@@ -74,7 +74,7 @@ Rialo Builders Arena is a web platform built for the **Rialo Discord community**
 - **Participant management** — Add participants with GitHub auto-lookup
 - **Winner declaration** — One-click winner selection with auto badge assignment
 - **Avatar sync** — Keep avatars consistent across all participant cards
-- **Existing user detection** — Auto-fills data when adding returning builders
+- **Secure Access** — Hidden admin route protected by Token-Based Authentication (HttpOnly Cookies)
 
 ### 📱 Responsive Design
 - Full desktop layout with 3-column card grids

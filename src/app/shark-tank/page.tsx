@@ -11,28 +11,49 @@ import { PROJECT_CATEGORIES } from '@/lib/constants';
 export default function SharkTankPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<string>('latest');
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchEvents() {
       try {
-        const { data: eventsData } = await supabase.from('events').select('*').eq('event_type', 'shark_tank').order('week_number', { ascending: false });
-        if (eventsData && eventsData.length > 0) {
-          setEvents(eventsData);
-          const eventId = selectedEvent === 'latest' ? eventsData[0].id : selectedEvent;
-          const parts = await fetchParticipantsWithProfiles(eventId);
-          setParticipants(parts);
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .eq('event_type', 'shark_tank')
+          .order('week_number', { ascending: false });
+
+        if (data && data.length > 0) {
+          setEvents(data);
+          setSelectedEventId(data[0].id);
+        } else {
+          setLoading(false);
         }
-      } catch (error) { console.error('Error:', error); }
+      } catch (error) { console.error('Error fetching events:', error); setLoading(false); }
+    }
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedEventId) return;
+
+    async function fetchParticipants() {
+      setLoading(true);
+      try {
+        const parts = await fetchParticipantsWithProfiles(selectedEventId);
+        setParticipants(parts);
+      } catch (error) { console.error('Error fetching participants:', error); }
       finally { setLoading(false); }
     }
-    fetchData();
-  }, [selectedEvent]);
+    fetchParticipants();
+  }, [selectedEventId]);
 
   const filtered = selectedCategory === 'all' ? participants : participants.filter((p) => p.project_category === selectedCategory);
-  const maxVotes = Math.max(...filtered.map((p) => p.vote_count), 1);
+
+  // Sort by votes for ranking
+  const rankedParticipants = [...filtered].sort((a, b) => b.vote_count - a.vote_count);
+  const maxVotes = Math.max(...rankedParticipants.map((p) => p.vote_count), 1);
 
   return (
     <div className="st-section" style={{ minHeight: '100vh', padding: '48px 0 80px', position: 'relative' }}>
@@ -53,43 +74,70 @@ export default function SharkTankPage() {
           <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto' }}>High stakes pitches. Bold ideas. The community decides.</p>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Filter style={{ width: 16, height: 16, color: 'var(--text-secondary)' }} />
-            <select value={selectedEvent} onChange={(e) => { setSelectedEvent(e.target.value); setLoading(true); }}
-              style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)', fontSize: '13px', cursor: 'pointer' }}>
-              <option value="latest" style={{ background: 'var(--bg-secondary)' }}>Latest Week</option>
-              {events.map((e) => <option key={e.id} value={e.id} style={{ background: 'var(--bg-secondary)' }}>{e.title}</option>)}
-            </select>
+        {/* Weekly Ladder Timeline (Tabs) */}
+        {events.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px', overflowX: 'auto', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', padding: '6px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              {events.map((event) => {
+                const isActive = selectedEventId === event.id;
+                return (
+                  <button
+                    key={event.id}
+                    onClick={() => setSelectedEventId(event.id)}
+                    style={{
+                      padding: '10px 20px', borderRadius: '12px', border: 'none',
+                      background: isActive ? 'var(--st-accent)' : 'transparent',
+                      color: isActive ? 'black' : 'var(--text-secondary)',
+                      fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                      transition: 'all 0.2s', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Week {event.week_number}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {['all', ...PROJECT_CATEGORIES].map((cat) => (
-              <button key={cat} onClick={() => setSelectedCategory(cat)}
-                style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: 'all 0.3s',
-                  background: selectedCategory === cat ? 'rgba(0,200,255,0.1)' : 'rgba(255,255,255,0.05)',
-                  color: selectedCategory === cat ? 'var(--st-accent)' : 'var(--text-secondary)',
-                  outline: selectedCategory === cat ? '1px solid rgba(0,200,255,0.3)' : '1px solid transparent',
-                }}>
-                {cat === 'all' ? 'All' : cat}
-              </button>
-            ))}
-          </div>
+        )}
+
+        {/* Category Filters */}
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
+          {['all', ...PROJECT_CATEGORIES].map((cat) => (
+            <button key={cat} onClick={() => setSelectedCategory(cat)}
+              style={{
+                padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+                background: selectedCategory === cat ? 'rgba(0,200,255,0.1)' : 'rgba(255,255,255,0.05)',
+                color: selectedCategory === cat ? 'var(--st-accent)' : 'var(--text-secondary)',
+                outline: selectedCategory === cat ? '1px solid rgba(0,200,255,0.3)' : '1px solid transparent',
+              }}>
+              {cat === 'all' ? 'All' : cat}
+            </button>
+          ))}
         </div>
 
+        {/* Grid */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
             {[1, 2, 3].map((i) => <div key={i} className="glass-card-st skeleton" style={{ height: '300px', borderRadius: '16px' }} />)}
           </div>
-        ) : filtered.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-            {filtered.map((p) => <BuilderCard key={p.id} participant={p} variant="shark_tank" maxVotes={maxVotes} />)}
+        ) : rankedParticipants.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+            {rankedParticipants.map((p, idx) => (
+              <BuilderCard
+                key={p.id}
+                participant={p}
+                variant="shark_tank"
+                maxVotes={maxVotes}
+                rank={idx + 1}
+              />
+            ))}
           </div>
         ) : (
           <div className="glass-card-st" style={{ padding: '64px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🦈</div>
             <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>No Pitches Found</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-              {selectedCategory !== 'all' ? `No ${selectedCategory} pitches. Try another category.` : 'No pitches yet.'}
+              {selectedCategory !== 'all' ? `No ${selectedCategory} pitches for Week ${events.find(e => e.id === selectedEventId)?.week_number}.` : 'No pitches found for this week.'}
             </p>
           </div>
         )}
